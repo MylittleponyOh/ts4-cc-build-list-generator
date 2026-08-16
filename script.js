@@ -451,6 +451,8 @@ function renderResults(items) {
 
         element.className = "cc-item unknown";
 
+        const firstInstance = item.instances[0] || "";
+
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">
@@ -465,7 +467,7 @@ function renderResults(items) {
                 Pas encore dans la base
             </div>
 
-            <button class="propose-button" type="button">
+            <button class="propose-button" type="button" data-instance="${escapeHTML(firstInstance)}" data-setname="" data-creator="">
                 + Proposer un lien
             </button>
         `;
@@ -611,12 +613,23 @@ copyButton.addEventListener("click", copyResult);
 // ==========================================
 // PROPOSE A LINK — SUBMISSION MODAL
 // ==========================================
-// Stockage local uniquement pour l'instant (localStorage).
-// Chaque proposition reste dans le navigateur de la personne
-// qui l'a soumise — pas encore de synchronisation entre
-// utilisatrices. À remplacer par un vrai backend plus tard.
+// La boîte de dialogue reste la même pour l'utilisateur.
+// À l'envoi, la proposition part vers le Google Form
+// "CC_List_Propositions" (stockage partagé, visible pour
+// toi dans son propre Sheet de réponses), ET reste aussi
+// enregistrée en local comme copie de secours/vérification.
 
 const SUBMISSIONS_KEY = "cc_pending_submissions";
+
+const GOOGLE_FORM_ACTION_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLSdqWNunZ8ghcE3SNIvI5jvryRLfDvzF_UgVLYNkUcrcyAwPrQ/formResponse";
+
+const GOOGLE_FORM_ENTRIES = {
+    instance: "entry.2096533801",
+    setName: "entry.261787736",
+    creator: "entry.762747753",
+    link: "entry.1012285333"
+};
 
 const submitModal = document.getElementById("submitModal");
 const modalItemName = document.getElementById("modalItemName");
@@ -629,6 +642,7 @@ const closeAdminButton = document.getElementById("closeAdmin");
 const adminList = document.getElementById("adminList");
 
 let currentProposedItemName = "";
+let currentProposedInstance = "";
 
 
 function getSubmissions() {
@@ -644,13 +658,17 @@ function saveSubmissions(submissions) {
     localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
 }
 
-function openSubmitModal(itemName) {
+function openSubmitModal(itemName, instanceId, setNameGuess, creatorGuess) {
 
     currentProposedItemName = itemName;
+    currentProposedInstance = instanceId || "";
 
     modalItemName.textContent = `Pour l'item : ${itemName}`;
 
     submitForm.reset();
+
+    document.getElementById("fieldSetName").value = setNameGuess || "";
+    document.getElementById("fieldCreator").value = creatorGuess || "";
 
     submitModal.classList.add("show");
 }
@@ -671,22 +689,74 @@ result.addEventListener("click", (event) => {
 
     if (event.target.classList.contains("propose-button")) {
 
-        const item = event.target.closest(".cc-item");
+        const button = event.target;
+
+        const item = button.closest(".cc-item");
 
         const name = item
             ? item.querySelector(".cc-name").textContent.trim()
             : "cet item";
 
-        openSubmitModal(name);
+        openSubmitModal(
+            name,
+            button.dataset.instance,
+            button.dataset.setname,
+            button.dataset.creator
+        );
     }
 });
 
-submitForm.addEventListener("submit", (event) => {
+
+// ------------------------------------------
+// SEND TO GOOGLE FORM (silent, no redirect)
+// ------------------------------------------
+
+async function submitToGoogleForm(submission) {
+
+    const body = new URLSearchParams();
+
+    body.append(GOOGLE_FORM_ENTRIES.instance, submission.instance);
+    body.append(GOOGLE_FORM_ENTRIES.setName, submission.setName);
+    body.append(GOOGLE_FORM_ENTRIES.creator, submission.creator);
+    body.append(GOOGLE_FORM_ENTRIES.link, submission.link);
+
+    try {
+
+        // "no-cors" est nécessaire pour poster vers Google Forms
+        // depuis un autre domaine sans que le navigateur bloque
+        // la requête. On ne peut pas lire la réponse (opaque),
+        // donc on considère que ça a marché si fetch ne lève pas
+        // d'erreur réseau.
+        await fetch(GOOGLE_FORM_ACTION_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: body.toString()
+        });
+
+        return true;
+
+    } catch (error) {
+
+        console.error("Échec de l'envoi vers le Google Form :", error);
+
+        return false;
+    }
+}
+
+submitForm.addEventListener("submit", async (event) => {
 
     event.preventDefault();
 
+    const submitBtn = submitForm.querySelector(".modal-submit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Envoi...";
+
     const submission = {
         itemName: currentProposedItemName,
+        instance: currentProposedInstance,
         setName: document.getElementById("fieldSetName").value.trim(),
         creator: document.getElementById("fieldCreator").value.trim(),
         link: document.getElementById("fieldLink").value.trim(),
@@ -694,11 +764,18 @@ submitForm.addEventListener("submit", (event) => {
         submittedAt: new Date().toISOString()
     };
 
+    await submitToGoogleForm(submission);
+
+    // Copie locale de secours, pratique pour toi en attendant
+    // de checker le Sheet de réponses du Form.
     const submissions = getSubmissions();
     submissions.push(submission);
     saveSubmissions(submissions);
 
     closeSubmitModal();
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Envoyer la proposition";
 
     showToast("Proposition envoyée, merci ! 🦄");
 });
