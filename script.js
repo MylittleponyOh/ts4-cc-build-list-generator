@@ -4,34 +4,51 @@
 // ==========================================
 
 // ------------------------------------------
-// FAKE DATABASE (test only)
+// LIVE DATABASE (Google Sheet via opensheet.elk.sh)
 // ------------------------------------------
-// Structure cible : instanceID -> { creator, setName, link }
-// C'est un test en dur pour valider le flux de lookup
-// avant de brancher une vraie base de données.
+// Le Sheet "CC LIST Database" (onglet "Feuille 1") sert de
+// source de vérité. Colonnes attendues : InstanceID | SetName | Creator | Link
 
-const FAKE_DATABASE = {
-    "0x00000000!0x0000000003e1685d.0x319e4f1d": {
-        creator: "MylittleponyOh",
-        setName: "Vedette",
-        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
-    },
-    "0x00000000!0x0000000003ebf8b0.0x319e4f1d": {
-        creator: "MylittleponyOh",
-        setName: "Vedette",
-        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
-    },
-    "0x00000000!0x00000000040d5267.0x319e4f1d": {
-        creator: "MylittleponyOh",
-        setName: "Vedette",
-        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
-    },
-    "0x00000000!0x00000000267abba.0x319e4f1d": {
-        creator: "MylittleponyOh",
-        setName: "Vedette",
-        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
+const DATABASE_URL =
+    "https://opensheet.elk.sh/1nTZL5uIfGKlp3ZUzgA3ApBmJuiVS45LVCHuGLVHw4X8/Feuille%201";
+
+let DATABASE_INDEX = {};
+
+async function loadDatabase() {
+
+    try {
+
+        const response = await fetch(DATABASE_URL);
+        const rows = await response.json();
+
+        const index = {};
+
+        rows.forEach((row) => {
+
+            const id = (row.InstanceID || "").trim();
+
+            if (!id) {
+                return;
+            }
+
+            index[id] = {
+                creator: row.Creator || "",
+                setName: row.SetName || "",
+                link: row.Link || ""
+            };
+        });
+
+        DATABASE_INDEX = index;
+
+    } catch (error) {
+
+        console.error("Impossible de charger la base de données :", error);
+
+        DATABASE_INDEX = {};
     }
-};
+}
+
+const databaseLoadPromise = loadDatabase();
 
 
 // ------------------------------------------
@@ -42,7 +59,7 @@ function lookupItem(item) {
 
     for (const instance of item.instances) {
 
-        const match = FAKE_DATABASE[instance.trim()];
+        const match = DATABASE_INDEX[instance.trim()];
 
         if (match) {
             return match;
@@ -512,7 +529,18 @@ clearButton.addEventListener("click", clearAll);
 // GENERATE BUTTON
 // ==========================================
 
-generateButton.addEventListener("click", generateList);
+generateButton.addEventListener("click", async () => {
+
+    generateButton.disabled = true;
+    generateButton.textContent = "Chargement...";
+
+    await databaseLoadPromise;
+
+    generateButton.disabled = false;
+    generateButton.innerHTML = '<span>✦</span> Generate the list';
+
+    generateList();
+});
 
 
 // ==========================================
@@ -570,12 +598,63 @@ copyButton.addEventListener("click", copyResult);
 
 
 // ==========================================
-// PROPOSE A LINK (placeholder)
+// PROPOSE A LINK — SUBMISSION MODAL
 // ==========================================
-// Pour l'instant, une simple alerte pour valider
-// le flux. Sera remplacé par le vrai formulaire
-// de soumission une fois le schéma de base
-// de données défini.
+// Stockage local uniquement pour l'instant (localStorage).
+// Chaque proposition reste dans le navigateur de la personne
+// qui l'a soumise — pas encore de synchronisation entre
+// utilisatrices. À remplacer par un vrai backend plus tard.
+
+const SUBMISSIONS_KEY = "cc_pending_submissions";
+
+const submitModal = document.getElementById("submitModal");
+const modalItemName = document.getElementById("modalItemName");
+const closeModalButton = document.getElementById("closeModal");
+const submitForm = document.getElementById("submitForm");
+
+const adminPanel = document.getElementById("adminPanel");
+const adminToggle = document.getElementById("adminToggle");
+const closeAdminButton = document.getElementById("closeAdmin");
+const adminList = document.getElementById("adminList");
+
+let currentProposedItemName = "";
+
+
+function getSubmissions() {
+
+    try {
+        return JSON.parse(localStorage.getItem(SUBMISSIONS_KEY)) || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveSubmissions(submissions) {
+    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
+}
+
+function openSubmitModal(itemName) {
+
+    currentProposedItemName = itemName;
+
+    modalItemName.textContent = `Pour l'item : ${itemName}`;
+
+    submitForm.reset();
+
+    submitModal.classList.add("show");
+}
+
+function closeSubmitModal() {
+    submitModal.classList.remove("show");
+}
+
+closeModalButton.addEventListener("click", closeSubmitModal);
+
+submitModal.addEventListener("click", (event) => {
+    if (event.target === submitModal) {
+        closeSubmitModal();
+    }
+});
 
 result.addEventListener("click", (event) => {
 
@@ -587,11 +666,115 @@ result.addEventListener("click", (event) => {
             ? item.querySelector(".cc-name").textContent.trim()
             : "cet item";
 
-        alert(
-            `Formulaire de soumission à venir pour : ${name}\n\n` +
-            `(Ici on demandera le pseudo créateurice, le nom du set, ` +
-            `et le lien — puis ça ira dans une file d'attente à valider.)`
-        );
+        openSubmitModal(name);
+    }
+});
+
+submitForm.addEventListener("submit", (event) => {
+
+    event.preventDefault();
+
+    const submission = {
+        itemName: currentProposedItemName,
+        setName: document.getElementById("fieldSetName").value.trim(),
+        creator: document.getElementById("fieldCreator").value.trim(),
+        link: document.getElementById("fieldLink").value.trim(),
+        note: document.getElementById("fieldNote").value.trim(),
+        submittedAt: new Date().toISOString()
+    };
+
+    const submissions = getSubmissions();
+    submissions.push(submission);
+    saveSubmissions(submissions);
+
+    closeSubmitModal();
+
+    showToast("Proposition envoyée, merci ! 🦄");
+});
+
+
+// ------------------------------------------
+// ADMIN PANEL (local test only)
+// ------------------------------------------
+
+function renderAdminList() {
+
+    const submissions = getSubmissions();
+
+    if (submissions.length === 0) {
+
+        adminList.innerHTML = `
+            <p class="admin-empty">Aucune proposition enregistrée pour l'instant.</p>
+        `;
+
+        return;
+    }
+
+    adminList.innerHTML = submissions
+        .map((sub, index) => `
+            <div class="admin-entry">
+                <div class="admin-entry-header">
+                    <strong>${escapeHTML(sub.itemName)}</strong>
+                    <button class="admin-delete" data-index="${index}" type="button">✕</button>
+                </div>
+                <div class="admin-entry-body">
+                    Set : ${escapeHTML(sub.setName)} · Créateurice : ${escapeHTML(sub.creator)}<br>
+                    Lien : <a href="${escapeHTML(sub.link)}" target="_blank" rel="noopener noreferrer">${escapeHTML(sub.link)}</a>
+                    ${sub.note ? `<br>Note : ${escapeHTML(sub.note)}` : ""}
+                </div>
+                <button class="admin-copy" data-index="${index}" type="button">
+                    ⧉ Copier en JSON
+                </button>
+            </div>
+        `)
+        .join("");
+}
+
+function openAdminPanel() {
+    renderAdminList();
+    adminPanel.classList.add("show");
+}
+
+function closeAdminPanel() {
+    adminPanel.classList.remove("show");
+}
+
+adminToggle.addEventListener("click", openAdminPanel);
+closeAdminButton.addEventListener("click", closeAdminPanel);
+
+adminPanel.addEventListener("click", (event) => {
+    if (event.target === adminPanel) {
+        closeAdminPanel();
+    }
+});
+
+adminList.addEventListener("click", async (event) => {
+
+    const index = event.target.dataset.index;
+
+    if (index === undefined) {
+        return;
+    }
+
+    const submissions = getSubmissions();
+
+    if (event.target.classList.contains("admin-delete")) {
+
+        submissions.splice(index, 1);
+        saveSubmissions(submissions);
+        renderAdminList();
+    }
+
+    if (event.target.classList.contains("admin-copy")) {
+
+        const entry = submissions[index];
+
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
+            showToast("Copié en JSON !");
+        } catch (error) {
+            // clipboard unavailable, silently ignore
+        }
     }
 });
 
