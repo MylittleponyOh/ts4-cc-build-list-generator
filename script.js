@@ -4,6 +4,56 @@
 // ==========================================
 
 // ------------------------------------------
+// FAKE DATABASE (test only)
+// ------------------------------------------
+// Structure cible : instanceID -> { creator, setName, link }
+// C'est un test en dur pour valider le flux de lookup
+// avant de brancher une vraie base de données.
+
+const FAKE_DATABASE = {
+    "0x00000000!0x0000000003e1685d.0x319e4f1d": {
+        creator: "MylittleponyOh",
+        setName: "Vedette",
+        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
+    },
+    "0x00000000!0x0000000003ebf8b0.0x319e4f1d": {
+        creator: "MylittleponyOh",
+        setName: "Vedette",
+        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
+    },
+    "0x00000000!0x00000000040d5267.0x319e4f1d": {
+        creator: "MylittleponyOh",
+        setName: "Vedette",
+        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
+    },
+    "0x00000000!0x00000000267abba.0x319e4f1d": {
+        creator: "MylittleponyOh",
+        setName: "Vedette",
+        link: "https://www.patreon.com/MylittleponyOh/posts/vedette-cc-set-153593652"
+    }
+};
+
+
+// ------------------------------------------
+// LOOKUP AN ITEM AGAINST THE DATABASE
+// ------------------------------------------
+
+function lookupItem(item) {
+
+    for (const instance of item.instances) {
+
+        const match = FAKE_DATABASE[instance.trim()];
+
+        if (match) {
+            return match;
+        }
+    }
+
+    return null;
+}
+
+
+// ------------------------------------------
 // ELEMENTS
 // ------------------------------------------
 
@@ -282,19 +332,58 @@ function renderResults(items) {
 
     items.forEach((item, index) => {
 
+        const match = lookupItem(item);
+
         const element = document.createElement("div");
 
-        element.className = "cc-item";
+        if (match) {
 
-        element.innerHTML = `
-            <span class="cc-name">
-                ${escapeHTML(formatCCName(item.name))}
-            </span>
+            element.className = "cc-item recognized";
 
-            <span class="cc-number">
-                CC #${index + 1}
-            </span>
-        `;
+            element.innerHTML = `
+                <div class="cc-item-row">
+                    <span class="cc-name">
+                        ${escapeHTML(formatCCName(item.name))}
+                    </span>
+                    <span class="cc-status recognized">
+                        ✓ reconnu
+                    </span>
+                </div>
+
+                <div class="cc-meta">
+                    <span class="cc-set">${escapeHTML(match.setName)}</span>
+                    par
+                    <span class="cc-creator">${escapeHTML(match.creator)}</span>
+                </div>
+
+                <a href="${escapeHTML(match.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
+                    🔗 Voir le lien
+                </a>
+            `;
+
+        } else {
+
+            element.className = "cc-item unknown";
+
+            element.innerHTML = `
+                <div class="cc-item-row">
+                    <span class="cc-name">
+                        ${escapeHTML(formatCCName(item.name))}
+                    </span>
+                    <span class="cc-status unknown">
+                        ? inconnu
+                    </span>
+                </div>
+
+                <div class="cc-meta cc-meta-unknown">
+                    Pas encore dans la base
+                </div>
+
+                <button class="propose-button" type="button">
+                    + Proposer un lien
+                </button>
+            `;
+        }
 
         list.appendChild(element);
     });
@@ -381,7 +470,16 @@ async function copyResult() {
 
 
     const text = generatedItems
-        .map(item => formatCCName(item.name))
+        .map(item => {
+
+            const match = lookupItem(item);
+
+            if (match) {
+                return `${match.setName} (${match.creator}) — ${match.link}`;
+            }
+
+            return `${formatCCName(item.name)} — [lien à vérifier]`;
+        })
         .join("\n");
 
 
@@ -411,6 +509,33 @@ async function copyResult() {
 }
 
 copyButton.addEventListener("click", copyResult);
+
+
+// ==========================================
+// PROPOSE A LINK (placeholder)
+// ==========================================
+// Pour l'instant, une simple alerte pour valider
+// le flux. Sera remplacé par le vrai formulaire
+// de soumission une fois le schéma de base
+// de données défini.
+
+result.addEventListener("click", (event) => {
+
+    if (event.target.classList.contains("propose-button")) {
+
+        const item = event.target.closest(".cc-item");
+
+        const name = item
+            ? item.querySelector(".cc-name").textContent.trim()
+            : "cet item";
+
+        alert(
+            `Formulaire de soumission à venir pour : ${name}\n\n` +
+            `(Ici on demandera le pseudo créateurice, le nom du set, ` +
+            `et le lien — puis ça ira dans une file d'attente à valider.)`
+        );
+    }
+});
 
 
 // ==========================================
