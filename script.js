@@ -397,19 +397,28 @@ function renderResults(items) {
 
         const element = document.createElement("div");
 
-        element.className = "cc-item recognized";
+        const hasLink = !!(group.link && group.link.trim());
+
+        element.className = hasLink
+            ? "cc-item recognized"
+            : "cc-item recognized missing-link";
 
         const itemsListHTML = group.items
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
+
+        // On garde l'Instance ID du 1er item pour le formulaire de
+        // proposition, au cas où le set est reconnu mais sans lien.
+        const firstInstance =
+            (group.items[0] && group.items[0].instances[0]) || "";
 
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">
                     ${escapeHTML(group.setName)}
                 </span>
-                <span class="cc-status recognized">
-                    ✓ reconnu (${group.items.length})
+                <span class="cc-status ${hasLink ? "recognized" : "missing"}">
+                    ${hasLink ? `✓ reconnu (${group.items.length})` : `⚠ lien manquant (${group.items.length})`}
                 </span>
             </div>
 
@@ -418,9 +427,11 @@ function renderResults(items) {
                 <span class="cc-creator">${escapeHTML(group.creator)}</span>
             </div>
 
-            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
-                🔗 Voir le lien
-            </a>
+            ${
+                hasLink
+                    ? `<a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 Voir le lien</a>`
+                    : `<button class="propose-button" type="button" data-instance="${escapeHTML(firstInstance)}" data-setname="${escapeHTML(group.setName)}" data-creator="${escapeHTML(group.creator)}">+ Proposer un lien</button>`
+            }
 
             <details class="cc-details">
                 <summary>Voir les ${group.items.length} items</summary>
