@@ -611,6 +611,50 @@ button:disabled {
 }
 
 
+/* COLLAPSIBLE ITEM LIST */
+
+.cc-details {
+    margin-top: 8px;
+}
+
+
+.cc-details summary {
+    cursor: pointer;
+
+    color: var(--text-soft);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    list-style: none;
+}
+
+
+.cc-details summary::-webkit-details-marker {
+    display: none;
+}
+
+
+.cc-details summary::before {
+    content: "▸ ";
+}
+
+
+.cc-details[open] summary::before {
+    content: "▾ ";
+}
+
+
+.cc-details ul {
+    margin-top: 6px;
+    padding-left: 18px;
+
+    color: var(--text-soft);
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+
 /* INFO */
 
 .info-section {
