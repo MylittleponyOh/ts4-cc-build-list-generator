@@ -54,6 +54,48 @@ function lookupItem(item) {
 
 
 // ------------------------------------------
+// GROUP ITEMS BY SET (recognized only)
+// ------------------------------------------
+
+function groupItems(items) {
+
+    const recognizedGroups = new Map();
+    const unknownItems = [];
+
+    items.forEach((item) => {
+
+        const match = lookupItem(item);
+
+        if (match) {
+
+            const key = `${match.creator}::${match.setName}`;
+
+            if (!recognizedGroups.has(key)) {
+
+                recognizedGroups.set(key, {
+                    creator: match.creator,
+                    setName: match.setName,
+                    link: match.link,
+                    items: []
+                });
+            }
+
+            recognizedGroups.get(key).items.push(item);
+
+        } else {
+
+            unknownItems.push(item);
+        }
+    });
+
+    return {
+        recognizedGroups: Array.from(recognizedGroups.values()),
+        unknownItems
+    };
+}
+
+
+// ------------------------------------------
 // ELEMENTS
 // ------------------------------------------
 
@@ -329,61 +371,76 @@ function renderResults(items) {
 
     list.className = "result-list";
 
+    const { recognizedGroups, unknownItems } = groupItems(items);
 
-    items.forEach((item, index) => {
 
-        const match = lookupItem(item);
+    // RECOGNIZED GROUPS (one card per set)
+
+    recognizedGroups.forEach((group) => {
 
         const element = document.createElement("div");
 
-        if (match) {
+        element.className = "cc-item recognized";
 
-            element.className = "cc-item recognized";
+        const itemsListHTML = group.items
+            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .join("");
 
-            element.innerHTML = `
-                <div class="cc-item-row">
-                    <span class="cc-name">
-                        ${escapeHTML(formatCCName(item.name))}
-                    </span>
-                    <span class="cc-status recognized">
-                        ✓ reconnu
-                    </span>
-                </div>
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">
+                    ${escapeHTML(group.setName)}
+                </span>
+                <span class="cc-status recognized">
+                    ✓ reconnu (${group.items.length})
+                </span>
+            </div>
 
-                <div class="cc-meta">
-                    <span class="cc-set">${escapeHTML(match.setName)}</span>
-                    par
-                    <span class="cc-creator">${escapeHTML(match.creator)}</span>
-                </div>
+            <div class="cc-meta">
+                par
+                <span class="cc-creator">${escapeHTML(group.creator)}</span>
+            </div>
 
-                <a href="${escapeHTML(match.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
-                    🔗 Voir le lien
-                </a>
-            `;
+            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
+                🔗 Voir le lien
+            </a>
 
-        } else {
+            <details class="cc-details">
+                <summary>Voir les ${group.items.length} items</summary>
+                <ul>${itemsListHTML}</ul>
+            </details>
+        `;
 
-            element.className = "cc-item unknown";
+        list.appendChild(element);
+    });
 
-            element.innerHTML = `
-                <div class="cc-item-row">
-                    <span class="cc-name">
-                        ${escapeHTML(formatCCName(item.name))}
-                    </span>
-                    <span class="cc-status unknown">
-                        ? inconnu
-                    </span>
-                </div>
 
-                <div class="cc-meta cc-meta-unknown">
-                    Pas encore dans la base
-                </div>
+    // UNKNOWN ITEMS (one card each, no grouping yet)
 
-                <button class="propose-button" type="button">
-                    + Proposer un lien
-                </button>
-            `;
-        }
+    unknownItems.forEach((item) => {
+
+        const element = document.createElement("div");
+
+        element.className = "cc-item unknown";
+
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">
+                    ${escapeHTML(formatCCName(item.name))}
+                </span>
+                <span class="cc-status unknown">
+                    ? inconnu
+                </span>
+            </div>
+
+            <div class="cc-meta cc-meta-unknown">
+                Pas encore dans la base
+            </div>
+
+            <button class="propose-button" type="button">
+                + Proposer un lien
+            </button>
+        `;
 
         list.appendChild(element);
     });
@@ -469,18 +526,19 @@ async function copyResult() {
     }
 
 
-    const text = generatedItems
-        .map(item => {
+    const { recognizedGroups, unknownItems } = groupItems(generatedItems);
 
-            const match = lookupItem(item);
+    const lines = [
+        ...recognizedGroups.map(
+            (group) =>
+                `${group.setName} (${group.creator}) — [download here](${group.link})`
+        ),
+        ...unknownItems.map(
+            (item) => `${formatCCName(item.name)} — [lien à vérifier]`
+        )
+    ];
 
-            if (match) {
-                return `${match.setName} (${match.creator}) — ${match.link}`;
-            }
-
-            return `${formatCCName(item.name)} — [lien à vérifier]`;
-        })
-        .join("\n");
+    const text = lines.join("\n");
 
 
     try {
