@@ -1,22 +1,22 @@
 // ==========================================
-// CC BUILD LIST GENERATOR
+// TS4 CC BUILD LIST GENERATOR
+// S4TI PARSER - V2
 // ==========================================
 
+// ------------------------------------------
+// ELEMENTS
+// ------------------------------------------
 
-// Elements
 const ccInput = document.getElementById("ccInput");
 const generateButton = document.getElementById("generateButton");
 const clearButton = document.getElementById("clearButton");
 const copyButton = document.getElementById("copyButton");
-
 const result = document.getElementById("result");
 const itemCount = document.getElementById("itemCount");
 const characterCount = document.getElementById("characterCount");
-
 const toast = document.getElementById("toast");
 
-
-// Current generated items
+// Liste actuellement générée
 let generatedItems = [];
 
 
@@ -25,77 +25,184 @@ let generatedItems = [];
 // ==========================================
 
 function updateCharacterCount() {
-
     const count = ccInput.value.length;
 
     characterCount.textContent =
         `${count.toLocaleString("fr-FR")} caractères`;
 }
 
-
 ccInput.addEventListener("input", updateCharacterCount);
 
 
 // ==========================================
-// EXTRACT CC NAMES
+// NORMALIZE NAME
 // ==========================================
 
-function extractCCNames(text) {
-
-    /*
-     * We look for anything between [ and ].
-     *
-     * Example:
-     *
-     * [VALIA_Cozy_Cabin_Closet_3]
-     *
-     * becomes:
-     *
-     * VALIA_Cozy_Cabin_Closet_3
-     */
-
-    const matches = text.match(/\[([^\]]+)\]/g) || [];
-
-    const names = matches.map(match => {
-
-        return match
-            .replace(/^\[/, "")
-            .replace(/\]$/, "")
-            .trim();
-
-    });
-
-
-    // Remove empty names
-    const filtered = names.filter(name => name.length > 0);
-
-
-    // Remove duplicates while preserving order
-    return [...new Set(filtered)];
+function normalizeName(name) {
+    return name
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
 }
 
 
 // ==========================================
-// FORMAT CC NAME
+// CHECK HEX IDENTIFIER
+// ==========================================
+
+function isHexIdentifier(value) {
+    /*
+     * S4TI peut afficher des entrées comme :
+     *
+     * [0x832A3ABF0870E3BB.0x034AEECB]
+     *
+     * Ce ne sont pas des noms de CC.
+     */
+
+    return /^0x[0-9a-f]+\.0x[0-9a-f]+$/i.test(value.trim());
+}
+
+
+// ==========================================
+// PARSE S4TI LIST
+// ==========================================
+
+function parseS4TI(text) {
+
+    const lines = text.split(/\r?\n/);
+
+    const items = [];
+    let currentItem = null;
+
+    for (const rawLine of lines) {
+
+        const line = rawLine.trim();
+
+        // --------------------------------------
+        // EMPTY LINE
+        // --------------------------------------
+
+        if (!line) {
+            continue;
+        }
+
+
+        // --------------------------------------
+        // INSTANCE LINE
+        // --------------------------------------
+
+        if (/^Instance\s*:/i.test(line)) {
+
+            if (currentItem) {
+
+                const instance = line
+                    .replace(/^Instance\s*:/i, "")
+                    .trim();
+
+                if (instance) {
+                    currentItem.instances.push(instance);
+                }
+            }
+
+            continue;
+        }
+
+
+        // --------------------------------------
+        // POSSIBLE CC NAME
+        // --------------------------------------
+
+        /*
+         * Important :
+         *
+         * On ne fait PAS :
+         *
+         * /\[([^\]]+)\]/
+         *
+         * car certains noms contiennent eux-mêmes
+         * des crochets.
+         *
+         * Exemple :
+         *
+         * [[crypticsim] sasha lip liner]
+         */
+
+        if (line.startsWith("[") && line.endsWith("]")) {
+
+            const name = line
+                .slice(1, -1)
+                .trim();
+
+            // [] → ignore
+            if (!name) {
+                currentItem = null;
+                continue;
+            }
+
+            // [0x....0x....] → ignore
+            if (isHexIdentifier(name)) {
+                currentItem = null;
+                continue;
+            }
+
+            currentItem = {
+                name: name,
+                instances: []
+            };
+
+            items.push(currentItem);
+
+            continue;
+        }
+
+
+        // --------------------------------------
+        // EVERYTHING ELSE
+        // --------------------------------------
+
+        /*
+         * Les autres lignes S4TI ne sont pas
+         * nécessaires pour l'identification
+         * pour le moment.
+         */
+    }
+
+
+    // ==========================================
+    // DEDUPLICATION
+    // ==========================================
+
+    const uniqueItems = new Map();
+
+    for (const item of items) {
+
+        const key = normalizeName(item.name);
+
+        if (!uniqueItems.has(key)) {
+
+            uniqueItems.set(key, {
+                name: item.name,
+                instances: [...item.instances]
+            });
+
+        } else {
+
+            const existing = uniqueItems.get(key);
+
+            existing.instances.push(...item.instances);
+        }
+    }
+
+
+    return Array.from(uniqueItems.values());
+}
+
+
+// ==========================================
+// FORMAT NAME
 // ==========================================
 
 function formatCCName(name) {
-
-    /*
-     * For now we simply make the filename-style
-     * name easier to read.
-     *
-     * Example:
-     *
-     * VALIA_Cozy_Cabin_Closet_3
-     *
-     * becomes:
-     *
-     * VALIA Cozy Cabin Closet 3
-     *
-     * Later this function can become much smarter
-     * once we have our set database.
-     */
 
     return name
         .replace(/_/g, " ")
@@ -105,7 +212,7 @@ function formatCCName(name) {
 
 
 // ==========================================
-// GENERATE RESULT
+// GENERATE LIST
 // ==========================================
 
 function generateList() {
@@ -114,23 +221,24 @@ function generateList() {
 
     if (!text) {
 
-        showEmptyState();
-
         generatedItems = [];
 
         updateCount(0);
+
         copyButton.disabled = true;
+
+        showEmptyState();
 
         return;
     }
 
 
-    const names = extractCCNames(text);
+    const items = parseS4TI(text);
 
-    generatedItems = names;
+    generatedItems = items;
 
 
-    if (names.length === 0) {
+    if (items.length === 0) {
 
         result.innerHTML = `
             <div class="empty-state">
@@ -139,22 +247,23 @@ function generateList() {
                 <h4>Aucun CC trouvé</h4>
 
                 <p>
-                    Vérifie que les noms de tes CC sont
-                    entourés de crochets [ ].
+                    Aucune entrée CC exploitable n'a été trouvée
+                    dans cette liste S4TI.
                 </p>
             </div>
         `;
 
         updateCount(0);
+
         copyButton.disabled = true;
 
         return;
     }
 
 
-    renderResults(names);
+    renderResults(items);
 
-    updateCount(names.length);
+    updateCount(items.length);
 
     copyButton.disabled = false;
 }
@@ -164,23 +273,22 @@ function generateList() {
 // DISPLAY RESULTS
 // ==========================================
 
-function renderResults(names) {
+function renderResults(items) {
 
     const list = document.createElement("div");
 
     list.className = "result-list";
 
 
-    names.forEach((name, index) => {
+    items.forEach((item, index) => {
 
-        const item = document.createElement("div");
+        const element = document.createElement("div");
 
-        item.className = "cc-item";
+        element.className = "cc-item";
 
-
-        item.innerHTML = `
+        element.innerHTML = `
             <span class="cc-name">
-                ${escapeHTML(formatCCName(name))}
+                ${escapeHTML(formatCCName(item.name))}
             </span>
 
             <span class="cc-number">
@@ -188,9 +296,7 @@ function renderResults(names) {
             </span>
         `;
 
-
-        list.appendChild(item);
-
+        list.appendChild(element);
     });
 
 
@@ -214,7 +320,7 @@ function showEmptyState() {
             <h4>Ton résultat apparaîtra ici</h4>
 
             <p>
-                Colle tes CC à gauche puis clique sur
+                Colle ta liste S4TI puis clique sur
                 « Générer la liste ».
             </p>
 
@@ -253,7 +359,6 @@ function clearAll() {
     showEmptyState();
 }
 
-
 clearButton.addEventListener("click", clearAll);
 
 
@@ -275,22 +380,8 @@ async function copyResult() {
     }
 
 
-    /*
-     * This is the simple text version for now.
-     *
-     * Later we can make it copy a beautiful
-     * formatted list including:
-     *
-     * Creator
-     * Set
-     * Set URL
-     * CC items
-     */
-
     const text = generatedItems
-        .map((name, index) => {
-            return `${index + 1}. ${formatCCName(name)}`;
-        })
+        .map(item => formatCCName(item.name))
         .join("\n");
 
 
@@ -301,11 +392,6 @@ async function copyResult() {
         showToast("Liste copiée !");
 
     } catch (error) {
-
-        /*
-         * Fallback for browsers where the Clipboard API
-         * isn't available.
-         */
 
         const temporaryTextarea =
             document.createElement("textarea");
@@ -324,7 +410,6 @@ async function copyResult() {
     }
 }
 
-
 copyButton.addEventListener("click", copyResult);
 
 
@@ -337,7 +422,6 @@ function showToast(message) {
     toast.textContent = message;
 
     toast.classList.add("show");
-
 
     setTimeout(() => {
 
