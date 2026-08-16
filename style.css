@@ -541,6 +541,17 @@ button:disabled {
 }
 
 
+.cc-status.missing {
+    background: #fbe8d3;
+    color: #a06a2a;
+}
+
+
+.cc-item.recognized.missing-link {
+    border-color: #f0dcb8;
+}
+
+
 .cc-item.recognized {
     border-color: #d3e6cf;
 }
