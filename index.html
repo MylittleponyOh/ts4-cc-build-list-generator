@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Générateur de liste CC pour les builds Sims 4">
+    <title>CC Build List Generator</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="logo">
+            <span class="logo-star">✦</span>
+            <div>
+                <h1>CC Build List</h1>
+                <p>Custom Content Generator</p>
+            </div>
+        </div>
+    </header>
+
+
+    <main class="container">
+
+        <section class="hero">
+            <span class="eyebrow">THE SIMS 4</span>
+            <h2>Génère ta liste de CC</h2>
+            <p>
+                Colle simplement la liste de CC utilisée dans ton build
+                et laisse l'outil faire le tri.
+            </p>
+        </section>
+
+
+        <section class="generator-grid">
+
+            <!-- INPUT -->
+            <div class="card input-card">
+
+                <div class="card-header">
+                    <div>
+                        <span class="step">01</span>
+                        <h3>Ta liste de CC</h3>
+                    </div>
+                    <button id="clearButton" class="text-button">
+                        Effacer
+                    </button>
+                </div>
+
+                <p class="card-description">
+                    Colle ici ta liste brute avec les noms et les instances.
+                </p>
+
+                <textarea
+                    id="ccInput"
+                    placeholder="[VALIA_Cozy_Cabin_Closet_3]
+Instance: 0x00000000!0x00000000060da606.0x319e4f1d
+
+[VALIA_Cozy_Cabin_Curtain_v2_Short_Right]
+Instance: 0x00000000!0x0000000008deb2b8.0x319e4f1d
+
+[VALIA_Cabin_Window_Double_Glass]
+Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
+
+                <div class="input-footer">
+                    <span id="characterCount">0 caractères</span>
+
+                    <button id="generateButton" class="primary-button">
+                        <span>✦</span>
+                        Générer la liste
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- OUTPUT -->
+            <div class="card output-card">
+
+                <div class="card-header">
+                    <div>
+                        <span class="step">02</span>
+                        <h3>Résultat</h3>
+                    </div>
+
+                    <span id="itemCount" class="count-badge">
+                        0 CC
+                    </span>
+                </div>
+
+                <div id="result" class="result-container">
+
+                    <div class="empty-state">
+                        <div class="empty-icon">✦</div>
+                        <h4>Ton résultat apparaîtra ici</h4>
+                        <p>
+                            Colle tes CC à gauche puis clique sur
+                            « Générer la liste ».
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="output-footer">
+
+                    <button id="copyButton" class="secondary-button" disabled>
+                        ⧉ Copier la liste
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="info-section">
+
+            <div class="info-card">
+                <span class="info-icon">♡</span>
+                <div>
+                    <h4>Regroupement automatique</h4>
+                    <p>
+                        Les CC identiques sont automatiquement regroupés.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="info-icon">🔗</span>
+                <div>
+                    <h4>Liens des sets</h4>
+                    <p>
+                        Les liens vers les sets seront ajoutés
+                        automatiquement dans une prochaine version.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="info-icon">✦</span>
+                <div>
+                    <h4>Simple & rapide</h4>
+                    <p>
+                        Aucun logiciel à installer pour utiliser l'outil.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        <p>CC Build List Generator · Made with ♡</p>
+    </footer>
+
+
+    <div id="toast" class="toast">
+        Liste copiée !
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
