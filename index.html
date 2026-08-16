@@ -154,7 +154,79 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
     <footer>
         <p>CC Build List Generator · Made with ♡</p>
+        <button id="adminToggle" class="admin-link" type="button">
+            Voir mes propositions (test local)
+        </button>
     </footer>
+
+
+    <!-- SUBMISSION MODAL -->
+    <div id="submitModal" class="modal-overlay">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <h3>Proposer un lien</h3>
+                <button id="closeModal" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-item-name" id="modalItemName"></p>
+
+            <form id="submitForm">
+
+                <label>
+                    Nom du set *
+                    <input type="text" id="fieldSetName" required placeholder="Ex : Cozy Cabin">
+                </label>
+
+                <label>
+                    Pseudo de la créateurice *
+                    <input type="text" id="fieldCreator" required placeholder="Ex : Valia">
+                </label>
+
+                <label>
+                    Lien de téléchargement *
+                    <input type="url" id="fieldLink" required placeholder="https://...">
+                </label>
+
+                <label>
+                    Note (optionnel)
+                    <textarea id="fieldNote" placeholder="Un détail utile pour la modération ?"></textarea>
+                </label>
+
+                <p class="modal-disclaimer">
+                    Cette proposition sera soumise à validation avant d'être ajoutée
+                    à la base publique.
+                </p>
+
+                <button type="submit" class="primary-button modal-submit">
+                    Envoyer la proposition
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- ADMIN PANEL (local test only) -->
+    <div id="adminPanel" class="modal-overlay">
+        <div class="modal-box admin-box">
+
+            <div class="modal-header">
+                <h3>Propositions en attente (local)</h3>
+                <button id="closeAdmin" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-disclaimer">
+                Ces propositions sont stockées uniquement dans ce navigateur —
+                pas encore synchronisées entre utilisatrices. Utilise "Copier"
+                pour les ajouter manuellement à la base pour l'instant.
+            </p>
+
+            <div id="adminList" class="admin-list"></div>
+
+        </div>
+    </div>
 
 
     <div id="toast" class="toast">
