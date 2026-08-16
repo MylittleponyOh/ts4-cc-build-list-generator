@@ -655,6 +655,239 @@ button:disabled {
 }
 
 
+/* FOOTER ADMIN LINK */
+
+.admin-link {
+    display: block;
+
+    margin: 8px auto 0;
+
+    background: transparent;
+    color: var(--text-soft);
+
+    font-size: 10px;
+    text-decoration: underline;
+
+    opacity: 0.6;
+}
+
+.admin-link:hover {
+    opacity: 1;
+    color: var(--accent-dark);
+}
+
+
+/* MODAL */
+
+.modal-overlay {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(61, 54, 54, 0.45);
+    backdrop-filter: blur(3px);
+
+    z-index: 100;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 420px;
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    padding: 26px;
+
+    background: var(--surface);
+
+    border-radius: var(--radius-large);
+
+    box-shadow: var(--shadow);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 6px;
+}
+
+.modal-header h3 {
+    font-size: 17px;
+}
+
+.modal-close {
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 16px;
+    padding: 4px 8px;
+}
+
+.modal-close:hover {
+    color: var(--accent-dark);
+}
+
+.modal-item-name {
+    margin-bottom: 16px;
+
+    color: var(--text-soft);
+    font-size: 12px;
+    font-style: italic;
+
+    word-break: break-word;
+}
+
+#submitForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#submitForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+#submitForm input,
+#submitForm textarea {
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+
+    background: var(--surface-soft);
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+
+    outline: none;
+}
+
+#submitForm input:focus,
+#submitForm textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-light);
+}
+
+#submitForm textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.modal-disclaimer {
+    color: var(--text-soft);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.modal-submit {
+    justify-content: center;
+    width: 100%;
+}
+
+
+/* ADMIN PANEL */
+
+.admin-box {
+    max-width: 480px;
+}
+
+.admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    margin-top: 14px;
+}
+
+.admin-empty {
+    color: var(--text-soft);
+    font-size: 12px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.admin-entry {
+    padding: 14px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+
+    background: var(--surface-soft);
+}
+
+.admin-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.admin-delete {
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 12px;
+    padding: 2px 6px;
+}
+
+.admin-delete:hover {
+    color: var(--accent-dark);
+}
+
+.admin-entry-body {
+    color: var(--text-soft);
+    font-size: 11.5px;
+    line-height: 1.6;
+
+    word-break: break-word;
+}
+
+.admin-entry-body a {
+    color: var(--accent-dark);
+}
+
+.admin-copy {
+    margin-top: 8px;
+
+    padding: 5px 10px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+
+    background: white;
+    color: var(--text);
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.admin-copy:hover {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+}
+
+
 /* INFO */
 
 .info-section {
