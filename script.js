@@ -1,13 +1,12 @@
 // ==========================================
-// TS4 CC BUILD LIST GENERATOR
-// S4TI PARSER - V2
+// THE LIST — S4TI CC CREDIT LIST GENERATOR
 // ==========================================
 
 // ------------------------------------------
 // LIVE DATABASE (Google Sheet via opensheet.elk.sh)
 // ------------------------------------------
-// Le Sheet "CC LIST Database" (onglet "Feuille 1") sert de
-// source de vérité. Colonnes attendues : InstanceID | SetName | Creator | Link
+// The "CC LIST Database" Sheet (tab "Feuille 1") is the
+// source of truth. Expected columns: InstanceID | SetName | Creator | Link
 
 const DATABASE_URL =
     "https://opensheet.elk.sh/1nTZL5uIfGKlp3ZUzgA3ApBmJuiVS45LVCHuGLVHw4X8/Feuille%201";
@@ -42,18 +41,13 @@ async function loadDatabase() {
 
     } catch (error) {
 
-        console.error("Impossible de charger la base de données :", error);
-
+        console.error("Could not load the database:", error);
         DATABASE_INDEX = {};
     }
 }
 
 const databaseLoadPromise = loadDatabase();
 
-
-// ------------------------------------------
-// LOOKUP AN ITEM AGAINST THE DATABASE
-// ------------------------------------------
 
 function lookupItem(item) {
 
@@ -71,44 +65,38 @@ function lookupItem(item) {
 
 
 // ------------------------------------------
-// GROUP ITEMS BY SET (recognized only)
+// PENDING SUBMISSIONS (localStorage, per-browser for now)
 // ------------------------------------------
 
-function groupItems(items) {
+const SUBMISSIONS_KEY = "cc_pending_submissions";
 
-    const recognizedGroups = new Map();
-    const unknownItems = [];
+function getSubmissions() {
 
-    items.forEach((item) => {
+    try {
+        return JSON.parse(localStorage.getItem(SUBMISSIONS_KEY)) || [];
+    } catch (error) {
+        return [];
+    }
+}
 
-        const match = lookupItem(item);
+function saveSubmissions(submissions) {
+    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
+}
 
-        if (match) {
+function getPendingIndex() {
 
-            const key = `${match.creator}::${match.setName}`;
+    const index = {};
 
-            if (!recognizedGroups.has(key)) {
+    getSubmissions().forEach((sub) => {
 
-                recognizedGroups.set(key, {
-                    creator: match.creator,
-                    setName: match.setName,
-                    link: match.link,
-                    items: []
-                });
-            }
+        const id = (sub.instance || "").trim();
 
-            recognizedGroups.get(key).items.push(item);
-
-        } else {
-
-            unknownItems.push(item);
+        if (id) {
+            index[id] = sub;
         }
     });
 
-    return {
-        recognizedGroups: Array.from(recognizedGroups.values()),
-        unknownItems
-    };
+    return index;
 }
 
 
@@ -125,7 +113,6 @@ const itemCount = document.getElementById("itemCount");
 const characterCount = document.getElementById("characterCount");
 const toast = document.getElementById("toast");
 
-// Liste actuellement générée
 let generatedItems = [];
 
 
@@ -134,10 +121,10 @@ let generatedItems = [];
 // ==========================================
 
 function updateCharacterCount() {
+
     const count = ccInput.value.length;
 
-    characterCount.textContent =
-        `${count.toLocaleString("fr-FR")} caractères`;
+    characterCount.textContent = `${count.toLocaleString("en-US")} characters`;
 }
 
 ccInput.addEventListener("input", updateCharacterCount);
@@ -148,6 +135,7 @@ ccInput.addEventListener("input", updateCharacterCount);
 // ==========================================
 
 function normalizeName(name) {
+
     return name
         .replace(/\s+/g, " ")
         .trim()
@@ -160,12 +148,13 @@ function normalizeName(name) {
 // ==========================================
 
 function isHexIdentifier(value) {
+
     /*
-     * S4TI peut afficher des entrées comme :
+     * S4TI can display entries like:
      *
      * [0x832A3ABF0870E3BB.0x034AEECB]
      *
-     * Ce ne sont pas des noms de CC.
+     * These are not CC names.
      */
 
     return /^0x[0-9a-f]+\.0x[0-9a-f]+$/i.test(value.trim());
@@ -187,26 +176,15 @@ function parseS4TI(text) {
 
         const line = rawLine.trim();
 
-        // --------------------------------------
-        // EMPTY LINE
-        // --------------------------------------
-
         if (!line) {
             continue;
         }
-
-
-        // --------------------------------------
-        // INSTANCE LINE
-        // --------------------------------------
 
         if (/^Instance\s*:/i.test(line)) {
 
             if (currentItem) {
 
-                const instance = line
-                    .replace(/^Instance\s*:/i, "")
-                    .trim();
+                const instance = line.replace(/^Instance\s*:/i, "").trim();
 
                 if (instance) {
                     currentItem.instances.push(instance);
@@ -216,39 +194,15 @@ function parseS4TI(text) {
             continue;
         }
 
-
-        // --------------------------------------
-        // POSSIBLE CC NAME
-        // --------------------------------------
-
-        /*
-         * Important :
-         *
-         * On ne fait PAS :
-         *
-         * /\[([^\]]+)\]/
-         *
-         * car certains noms contiennent eux-mêmes
-         * des crochets.
-         *
-         * Exemple :
-         *
-         * [[crypticsim] sasha lip liner]
-         */
-
         if (line.startsWith("[") && line.endsWith("]")) {
 
-            const name = line
-                .slice(1, -1)
-                .trim();
+            const name = line.slice(1, -1).trim();
 
-            // [] → ignore
             if (!name) {
                 currentItem = null;
                 continue;
             }
 
-            // [0x....0x....] → ignore
             if (isHexIdentifier(name)) {
                 currentItem = null;
                 continue;
@@ -264,22 +218,9 @@ function parseS4TI(text) {
             continue;
         }
 
-
-        // --------------------------------------
-        // EVERYTHING ELSE
-        // --------------------------------------
-
-        /*
-         * Les autres lignes S4TI ne sont pas
-         * nécessaires pour l'identification
-         * pour le moment.
-         */
+        // Other S4TI lines (Name/Creator/Homepage from the user's own
+        // local S4TI annotations) aren't needed for identification here.
     }
-
-
-    // ==========================================
-    // DEDUPLICATION
-    // ==========================================
 
     const uniqueItems = new Map();
 
@@ -297,11 +238,9 @@ function parseS4TI(text) {
         } else {
 
             const existing = uniqueItems.get(key);
-
             existing.instances.push(...item.instances);
         }
     }
-
 
     return Array.from(uniqueItems.values());
 }
@@ -321,6 +260,99 @@ function formatCCName(name) {
 
 
 // ==========================================
+// CLASSIFY + GROUP ITEMS
+// ==========================================
+// Every item falls into exactly one bucket, checked in this
+// priority order:
+//
+// 1. pending    — the user already submitted info for this exact
+//                 Instance ID (locally). We show their own submitted
+//                 link right away, flagged as awaiting validation,
+//                 and hide the propose button so they can't submit twice.
+// 2. recognized — found in the live database, with a link.
+// 3. missing    — found in the live database, but the link is empty.
+// 4. unknown    — not found anywhere.
+//
+// Within each bucket, items sharing the same creator + set name are
+// grouped into a single row.
+
+function classifyAndGroup(items) {
+
+    const pendingIndex = getPendingIndex();
+
+    const buckets = {
+        pending: new Map(),
+        recognized: new Map(),
+        missing: new Map()
+    };
+
+    const unknownItems = [];
+
+    items.forEach((item) => {
+
+        const instance = (item.instances[0] || "").trim();
+        const pending = pendingIndex[instance];
+
+        if (pending) {
+
+            const key = `${pending.creator}::${pending.setName}`;
+
+            if (!buckets.pending.has(key)) {
+                buckets.pending.set(key, {
+                    creator: pending.creator,
+                    setName: pending.setName,
+                    link: pending.link,
+                    items: []
+                });
+            }
+
+            buckets.pending.get(key).items.push(item);
+            return;
+        }
+
+        const dbMatch = lookupItem(item);
+
+        if (dbMatch && dbMatch.link && dbMatch.link.trim()) {
+
+            const key = `${dbMatch.creator}::${dbMatch.setName}`;
+
+            if (!buckets.recognized.has(key)) {
+                buckets.recognized.set(key, { ...dbMatch, items: [] });
+            }
+
+            buckets.recognized.get(key).items.push(item);
+            return;
+        }
+
+        if (dbMatch) {
+
+            const key = `${dbMatch.creator}::${dbMatch.setName}`;
+
+            if (!buckets.missing.has(key)) {
+                buckets.missing.set(key, {
+                    ...dbMatch,
+                    items: [],
+                    firstInstance: instance
+                });
+            }
+
+            buckets.missing.get(key).items.push(item);
+            return;
+        }
+
+        unknownItems.push(item);
+    });
+
+    return {
+        pendingGroups: Array.from(buckets.pending.values()),
+        recognizedGroups: Array.from(buckets.recognized.values()),
+        missingGroups: Array.from(buckets.missing.values()),
+        unknownItems
+    };
+}
+
+
+// ==========================================
 // GENERATE LIST
 // ==========================================
 
@@ -331,49 +363,33 @@ function generateList() {
     if (!text) {
 
         generatedItems = [];
-
         updateCount(0);
-
         copyButton.disabled = true;
-
         showEmptyState();
-
         return;
     }
-
 
     const items = parseS4TI(text);
 
     generatedItems = items;
-
 
     if (items.length === 0) {
 
         result.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">?</div>
-
-                <h4>Aucun CC trouvé</h4>
-
-                <p>
-                    Aucune entrée CC exploitable n'a été trouvée
-                    dans cette liste S4TI.
-                </p>
+                <h4>No CC found</h4>
+                <p>No usable CC entries were found in this S4TI export.</p>
             </div>
         `;
 
         updateCount(0);
-
         copyButton.disabled = true;
-
         return;
     }
 
-
     renderResults(items);
-
     updateCount(items.length);
-
     copyButton.disabled = false;
 }
 
@@ -385,56 +401,40 @@ function generateList() {
 function renderResults(items) {
 
     const list = document.createElement("div");
-
     list.className = "result-list";
 
-    const { recognizedGroups, unknownItems } = groupItems(items);
+    const { pendingGroups, recognizedGroups, missingGroups, unknownItems } =
+        classifyAndGroup(items);
 
+    // PENDING GROUPS (user's own submission, awaiting validation)
 
-    // RECOGNIZED GROUPS (one card per set)
-
-    recognizedGroups.forEach((group) => {
+    pendingGroups.forEach((group) => {
 
         const element = document.createElement("div");
-
-        const hasLink = !!(group.link && group.link.trim());
-
-        element.className = hasLink
-            ? "cc-item recognized"
-            : "cc-item recognized missing-link";
+        element.className = "cc-item pending";
 
         const itemsListHTML = group.items
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
-        // On garde l'Instance ID du 1er item pour le formulaire de
-        // proposition, au cas où le set est reconnu mais sans lien.
-        const firstInstance =
-            (group.items[0] && group.items[0].instances[0]) || "";
-
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">
-                    ${escapeHTML(group.setName)}
-                </span>
-                <span class="cc-status ${hasLink ? "recognized" : "missing"}">
-                    ${hasLink ? `✓ reconnu (${group.items.length})` : `⚠ lien manquant (${group.items.length})`}
-                </span>
+                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-status pending">⏳ pending (${group.items.length})</span>
             </div>
 
             <div class="cc-meta">
-                par
-                <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
             </div>
 
-            ${
-                hasLink
-                    ? `<a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 Voir le lien</a>`
-                    : `<button class="propose-button" type="button" data-instance="${escapeHTML(firstInstance)}" data-setname="${escapeHTML(group.setName)}" data-creator="${escapeHTML(group.creator)}">+ Proposer un lien</button>`
-            }
+            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
+                🔗 View the link
+            </a>
+
+            <span class="pending-note">Submission pending review</span>
 
             <details class="cc-details">
-                <summary>Voir les ${group.items.length} items</summary>
+                <summary>View the ${group.items.length} items</summary>
                 <ul>${itemsListHTML}</ul>
             </details>
         `;
@@ -442,42 +442,112 @@ function renderResults(items) {
         list.appendChild(element);
     });
 
+    // RECOGNIZED GROUPS (in database, with a link)
 
-    // UNKNOWN ITEMS (one card each, no grouping yet)
+    recognizedGroups.forEach((group) => {
+
+        const element = document.createElement("div");
+        element.className = "cc-item recognized";
+
+        const itemsListHTML = group.items
+            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .join("");
+
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
+            </div>
+
+            <div class="cc-meta">
+                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+            </div>
+
+            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
+                🔗 View the link
+            </a>
+
+            <details class="cc-details">
+                <summary>View the ${group.items.length} items</summary>
+                <ul>${itemsListHTML}</ul>
+            </details>
+        `;
+
+        list.appendChild(element);
+    });
+
+    // MISSING-LINK GROUPS (in database, no link yet)
+
+    missingGroups.forEach((group) => {
+
+        const element = document.createElement("div");
+        element.className = "cc-item missing-link";
+
+        const itemsListHTML = group.items
+            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .join("");
+
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
+            </div>
+
+            <div class="cc-meta">
+                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+            </div>
+
+            <button
+                class="propose-button"
+                type="button"
+                data-instance="${escapeHTML(group.firstInstance)}"
+                data-setname="${escapeHTML(group.setName)}"
+                data-creator="${escapeHTML(group.creator)}"
+            >
+                + Submit a link
+            </button>
+
+            <details class="cc-details">
+                <summary>View the ${group.items.length} items</summary>
+                <ul>${itemsListHTML}</ul>
+            </details>
+        `;
+
+        list.appendChild(element);
+    });
+
+    // UNKNOWN ITEMS (not in the database at all)
 
     unknownItems.forEach((item) => {
 
         const element = document.createElement("div");
-
         element.className = "cc-item unknown";
 
         const firstInstance = item.instances[0] || "";
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">
-                    ${escapeHTML(formatCCName(item.name))}
-                </span>
-                <span class="cc-status unknown">
-                    ? inconnu
-                </span>
+                <span class="cc-name">${escapeHTML(formatCCName(item.name))}</span>
+                <span class="cc-status unknown">? unknown</span>
             </div>
 
-            <div class="cc-meta cc-meta-unknown">
-                Pas encore dans la base
-            </div>
+            <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
 
-            <button class="propose-button" type="button" data-instance="${escapeHTML(firstInstance)}" data-setname="" data-creator="">
-                + Proposer un lien
+            <button
+                class="propose-button"
+                type="button"
+                data-instance="${escapeHTML(firstInstance)}"
+                data-setname=""
+                data-creator=""
+            >
+                + Submit a link
             </button>
         `;
 
         list.appendChild(element);
     });
 
-
     result.innerHTML = "";
-
     result.appendChild(list);
 }
 
@@ -490,16 +560,9 @@ function showEmptyState() {
 
     result.innerHTML = `
         <div class="empty-state">
-
             <div class="empty-icon">✦</div>
-
-            <h4>Ton résultat apparaîtra ici</h4>
-
-            <p>
-                Colle ta liste S4TI puis clique sur
-                « Générer la liste ».
-            </p>
-
+            <h4>Nothing here yet</h4>
+            <p>Paste your export on the left and hit "Create the list".</p>
         </div>
     `;
 }
@@ -510,9 +573,7 @@ function showEmptyState() {
 // ==========================================
 
 function updateCount(count) {
-
-    itemCount.textContent =
-        `${count} CC`;
+    itemCount.textContent = `${count} CC`;
 }
 
 
@@ -523,15 +584,10 @@ function updateCount(count) {
 function clearAll() {
 
     ccInput.value = "";
-
     generatedItems = [];
-
     updateCharacterCount();
-
     updateCount(0);
-
     copyButton.disabled = true;
-
     showEmptyState();
 }
 
@@ -545,12 +601,12 @@ clearButton.addEventListener("click", clearAll);
 generateButton.addEventListener("click", async () => {
 
     generateButton.disabled = true;
-    generateButton.textContent = "Chargement...";
+    generateButton.textContent = "Loading...";
 
     await databaseLoadPromise;
 
     generateButton.disabled = false;
-    generateButton.innerHTML = '<span>✦</span> Generate the list';
+    generateButton.innerHTML = '<span>✦</span> Create the list';
 
     generateList();
 });
@@ -566,44 +622,41 @@ async function copyResult() {
         return;
     }
 
-
-    const { recognizedGroups, unknownItems } = groupItems(generatedItems);
+    const { pendingGroups, recognizedGroups, missingGroups, unknownItems } =
+        classifyAndGroup(generatedItems);
 
     const lines = [
         ...recognizedGroups.map(
+            (group) => `${group.setName} (${group.creator}) — [download here](${group.link})`
+        ),
+        ...pendingGroups.map(
             (group) =>
-                `${group.setName} (${group.creator}) — [download here](${group.link})`
+                `${group.setName} (${group.creator}) — [download here](${group.link}) (pending validation)`
+        ),
+        ...missingGroups.map(
+            (group) => `${group.setName} (${group.creator}) — [link needed]`
         ),
         ...unknownItems.map(
-            (item) => `${formatCCName(item.name)} — [lien à vérifier]`
+            (item) => `${formatCCName(item.name)} — [link needed]`
         )
     ];
 
     const text = lines.join("\n");
 
-
     try {
 
         await navigator.clipboard.writeText(text);
-
-        showToast("Liste copiée !");
+        showToast("List copied!");
 
     } catch (error) {
 
-        const temporaryTextarea =
-            document.createElement("textarea");
-
+        const temporaryTextarea = document.createElement("textarea");
         temporaryTextarea.value = text;
-
         document.body.appendChild(temporaryTextarea);
-
         temporaryTextarea.select();
-
         document.execCommand("copy");
-
         temporaryTextarea.remove();
-
-        showToast("Liste copiée !");
+        showToast("List copied!");
     }
 }
 
@@ -611,15 +664,13 @@ copyButton.addEventListener("click", copyResult);
 
 
 // ==========================================
-// PROPOSE A LINK — SUBMISSION MODAL
+// SUBMISSION MODAL (single item / missing link)
 // ==========================================
-// La boîte de dialogue reste la même pour l'utilisateur.
-// À l'envoi, la proposition part vers le Google Form
-// "CC_List_Propositions" (stockage partagé, visible pour
-// toi dans son propre Sheet de réponses), ET reste aussi
-// enregistrée en local comme copie de secours/vérification.
-
-const SUBMISSIONS_KEY = "cc_pending_submissions";
+// The dialog only sends the person's data. Behind the scenes it
+// also posts to the "CC_List_Propositions" Google Form (its own,
+// separate response Sheet — never the live database), and keeps
+// a local copy so the tool can show "pending" state immediately
+// on this browser while waiting on real validation.
 
 const GOOGLE_FORM_ACTION_URL =
     "https://docs.google.com/forms/d/e/1FAIpQLSdqWNunZ8ghcE3SNIvI5jvryRLfDvzF_UgVLYNkUcrcyAwPrQ/formResponse";
@@ -644,26 +695,12 @@ const adminList = document.getElementById("adminList");
 let currentProposedItemName = "";
 let currentProposedInstance = "";
 
-
-function getSubmissions() {
-
-    try {
-        return JSON.parse(localStorage.getItem(SUBMISSIONS_KEY)) || [];
-    } catch (error) {
-        return [];
-    }
-}
-
-function saveSubmissions(submissions) {
-    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(submissions));
-}
-
 function openSubmitModal(itemName, instanceId, setNameGuess, creatorGuess) {
 
     currentProposedItemName = itemName;
     currentProposedInstance = instanceId || "";
 
-    modalItemName.textContent = `Pour l'item : ${itemName}`;
+    modalItemName.textContent = `For item: ${itemName}`;
 
     submitForm.reset();
 
@@ -690,12 +727,11 @@ result.addEventListener("click", (event) => {
     if (event.target.classList.contains("propose-button")) {
 
         const button = event.target;
-
         const item = button.closest(".cc-item");
 
         const name = item
             ? item.querySelector(".cc-name").textContent.trim()
-            : "cet item";
+            : "this item";
 
         openSubmitModal(
             name,
@@ -707,32 +743,24 @@ result.addEventListener("click", (event) => {
 });
 
 
-// ------------------------------------------
-// SEND TO GOOGLE FORM (silent, no redirect)
-// ------------------------------------------
-
-async function submitToGoogleForm(submission) {
+async function submitToGoogleForm(entryValues) {
 
     const body = new URLSearchParams();
 
-    body.append(GOOGLE_FORM_ENTRIES.instance, submission.instance);
-    body.append(GOOGLE_FORM_ENTRIES.setName, submission.setName);
-    body.append(GOOGLE_FORM_ENTRIES.creator, submission.creator);
-    body.append(GOOGLE_FORM_ENTRIES.link, submission.link);
+    body.append(GOOGLE_FORM_ENTRIES.instance, entryValues.instance || "");
+    body.append(GOOGLE_FORM_ENTRIES.setName, entryValues.setName || "");
+    body.append(GOOGLE_FORM_ENTRIES.creator, entryValues.creator || "");
+    body.append(GOOGLE_FORM_ENTRIES.link, entryValues.link || "");
 
     try {
 
-        // "no-cors" est nécessaire pour poster vers Google Forms
-        // depuis un autre domaine sans que le navigateur bloque
-        // la requête. On ne peut pas lire la réponse (opaque),
-        // donc on considère que ça a marché si fetch ne lève pas
-        // d'erreur réseau.
+        // "no-cors" is required to post to Google Forms from another
+        // domain without the browser blocking it. The response is
+        // opaque, so we treat "fetch didn't throw" as success.
         await fetch(GOOGLE_FORM_ACTION_URL, {
             method: "POST",
             mode: "no-cors",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: body.toString()
         });
 
@@ -740,8 +768,7 @@ async function submitToGoogleForm(submission) {
 
     } catch (error) {
 
-        console.error("Échec de l'envoi vers le Google Form :", error);
-
+        console.error("Failed to submit to the Google Form:", error);
         return false;
     }
 }
@@ -752,7 +779,7 @@ submitForm.addEventListener("submit", async (event) => {
 
     const submitBtn = submitForm.querySelector(".modal-submit");
     submitBtn.disabled = true;
-    submitBtn.textContent = "Envoi...";
+    submitBtn.textContent = "Sending...";
 
     const submission = {
         itemName: currentProposedItemName,
@@ -766,8 +793,6 @@ submitForm.addEventListener("submit", async (event) => {
 
     await submitToGoogleForm(submission);
 
-    // Copie locale de secours, pratique pour toi en attendant
-    // de checker le Sheet de réponses du Form.
     const submissions = getSubmissions();
     submissions.push(submission);
     saveSubmissions(submissions);
@@ -775,15 +800,111 @@ submitForm.addEventListener("submit", async (event) => {
     closeSubmitModal();
 
     submitBtn.disabled = false;
-    submitBtn.textContent = "Envoyer la proposition";
+    submitBtn.textContent = "Submit suggestion";
 
-    showToast("Proposition envoyée, merci ! 🦄");
+    showToast("Suggestion sent, thank you! 🦄");
+
+    // Re-render immediately so the item now shows as "pending"
+    // instead of the propose button, without needing a new paste.
+    if (generatedItems.length > 0) {
+        renderResults(generatedItems);
+    }
 });
 
 
-// ------------------------------------------
+// ==========================================
+// BUNDLE SUBMISSION (whole set at once, for creators)
+// ==========================================
+
+const bundleModal = document.getElementById("bundleModal");
+const bundleToggle = document.getElementById("bundleToggle");
+const closeBundleButton = document.getElementById("closeBundle");
+const bundleForm = document.getElementById("bundleForm");
+
+function openBundleModal() {
+    bundleForm.reset();
+    bundleModal.classList.add("show");
+}
+
+function closeBundleModal() {
+    bundleModal.classList.remove("show");
+}
+
+bundleToggle.addEventListener("click", openBundleModal);
+closeBundleButton.addEventListener("click", closeBundleModal);
+
+bundleModal.addEventListener("click", (event) => {
+    if (event.target === bundleModal) {
+        closeBundleModal();
+    }
+});
+
+bundleForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const submitBtn = bundleForm.querySelector(".modal-submit");
+
+    const exportText = document.getElementById("bundleExport").value.trim();
+    const setName = document.getElementById("bundleSetName").value.trim();
+    const creator = document.getElementById("bundleCreator").value.trim();
+    const link = document.getElementById("bundleLink").value.trim();
+
+    const items = parseS4TI(exportText);
+    const instances = [];
+
+    items.forEach((item) => {
+        item.instances.forEach((instance) => {
+            if (instance.trim()) {
+                instances.push(instance.trim());
+            }
+        });
+    });
+
+    if (instances.length === 0) {
+        showToast("No Instance ID found in that export.");
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = `Sending ${instances.length} items...`;
+
+    const submissions = getSubmissions();
+
+    for (const instance of instances) {
+
+        const submission = {
+            itemName: setName,
+            instance: instance,
+            setName: setName,
+            creator: creator,
+            link: link,
+            note: "Submitted as a whole set",
+            submittedAt: new Date().toISOString()
+        };
+
+        await submitToGoogleForm(submission);
+        submissions.push(submission);
+    }
+
+    saveSubmissions(submissions);
+
+    closeBundleModal();
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit the whole set";
+
+    showToast(`Submitted ${instances.length} items for review 🦄`);
+
+    if (generatedItems.length > 0) {
+        renderResults(generatedItems);
+    }
+});
+
+
+// ==========================================
 // ADMIN PANEL (local test only)
-// ------------------------------------------
+// ==========================================
 
 function renderAdminList() {
 
@@ -792,7 +913,7 @@ function renderAdminList() {
     if (submissions.length === 0) {
 
         adminList.innerHTML = `
-            <p class="admin-empty">Aucune proposition enregistrée pour l'instant.</p>
+            <p class="admin-empty">No submissions recorded yet.</p>
         `;
 
         return;
@@ -806,12 +927,12 @@ function renderAdminList() {
                     <button class="admin-delete" data-index="${index}" type="button">✕</button>
                 </div>
                 <div class="admin-entry-body">
-                    Set : ${escapeHTML(sub.setName)} · Créateurice : ${escapeHTML(sub.creator)}<br>
-                    Lien : <a href="${escapeHTML(sub.link)}" target="_blank" rel="noopener noreferrer">${escapeHTML(sub.link)}</a>
-                    ${sub.note ? `<br>Note : ${escapeHTML(sub.note)}` : ""}
+                    Set: ${escapeHTML(sub.setName)} · Creator: ${escapeHTML(sub.creator)}<br>
+                    Link: <a href="${escapeHTML(sub.link)}" target="_blank" rel="noopener noreferrer">${escapeHTML(sub.link)}</a>
+                    ${sub.note ? `<br>Note: ${escapeHTML(sub.note)}` : ""}
                 </div>
                 <button class="admin-copy" data-index="${index}" type="button">
-                    ⧉ Copier en JSON
+                    ⧉ Copy as JSON
                 </button>
             </div>
         `)
@@ -847,7 +968,6 @@ adminList.addEventListener("click", async (event) => {
     const submissions = getSubmissions();
 
     if (event.target.classList.contains("admin-delete")) {
-
         submissions.splice(index, 1);
         saveSubmissions(submissions);
         renderAdminList();
@@ -859,7 +979,7 @@ adminList.addEventListener("click", async (event) => {
 
         try {
             await navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
-            showToast("Copié en JSON !");
+            showToast("Copied as JSON!");
         } catch (error) {
             // clipboard unavailable, silently ignore
         }
@@ -874,14 +994,11 @@ adminList.addEventListener("click", async (event) => {
 function showToast(message) {
 
     toast.textContent = message;
-
     toast.classList.add("show");
 
     setTimeout(() => {
-
         toast.classList.remove("show");
-
-    }, 2000);
+    }, 2500);
 }
 
 
@@ -891,7 +1008,7 @@ function showToast(message) {
 
 function escapeHTML(value) {
 
-    return value
+    return (value || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
