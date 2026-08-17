@@ -1,22 +1,25 @@
 :root {
     --background: #f7f4f2;
     --surface: #ffffff;
-    --surface-soft: #faf8f7;
+    --surface-soft: #f4f3f0;
 
-    --text: #3d3636;
-    --text-soft: #817676;
+    --text: #222944;
+    --text-soft: #6f6a5c;
 
-    --accent: #b78391;
-    --accent-dark: #986875;
-    --accent-light: #f1e2e6;
+    --accent: #222944;
+    --accent-dark: #12162a;
+    --accent-light: #BBC2DD;
 
-    --border: #e9e1df;
+    --taupe: #BCB7A9;
+    --taupe-light: #ece9e2;
 
-    --shadow: 0 15px 45px rgba(75, 55, 60, 0.08);
+    --border: #e2ded4;
 
-    --radius-large: 24px;
-    --radius-medium: 14px;
-    --radius-small: 10px;
+    --shadow: 0 12px 32px rgba(34, 41, 68, 0.08);
+
+    --radius-large: 14px;
+    --radius-medium: 8px;
+    --radius-small: 6px;
 }
 
 
@@ -30,13 +33,7 @@
 body {
     min-height: 100vh;
 
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(183, 131, 145, 0.10),
-            transparent 35%
-        ),
-        var(--background);
+    background: var(--background);
 
     color: var(--text);
 
@@ -54,10 +51,10 @@ body {
 /* HEADER */
 
 .site-header {
-    padding: 28px 5%;
+    padding: 24px 5%;
     border-bottom: 1px solid var(--border);
 
-    background: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
 }
 
@@ -65,7 +62,7 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 12px;
 
     max-width: 1200px;
     margin: auto;
@@ -77,22 +74,23 @@ body {
     align-items: center;
     justify-content: center;
 
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
 
-    border-radius: 50%;
+    border-radius: var(--radius-small);
 
-    background: var(--accent-light);
-    color: var(--accent);
+    background: var(--accent);
+    color: white;
 
-    font-size: 22px;
+    font-size: 17px;
 }
 
 
 .logo h1 {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-family: Georgia, serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
 }
 
 
@@ -113,7 +111,7 @@ body {
 
 
 .hero {
-    padding: 70px 0 45px;
+    padding: 60px 0 40px;
     text-align: center;
 }
 
@@ -123,7 +121,7 @@ body {
 
     margin-bottom: 12px;
 
-    color: var(--accent);
+    color: var(--taupe);
 
     font-size: 11px;
     font-weight: 700;
@@ -134,11 +132,16 @@ body {
 .hero h2 {
     margin-bottom: 12px;
 
-    font-family: Georgia, serif;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 
-    font-size: clamp(34px, 5vw, 54px);
-    font-weight: 400;
-    letter-spacing: -0.04em;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
 }
 
 
@@ -155,7 +158,7 @@ body {
 .generator-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 20px;
 }
 
 
@@ -167,7 +170,7 @@ body {
 
     min-height: 560px;
 
-    padding: 26px;
+    padding: 24px;
 
     background: var(--surface);
 
@@ -199,13 +202,13 @@ body {
     align-items: center;
     justify-content: center;
 
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
 
-    border-radius: 50%;
+    border-radius: var(--radius-small);
 
-    background: var(--accent-light);
-    color: var(--accent);
+    background: var(--taupe-light);
+    color: var(--text);
 
     font-size: 11px;
     font-weight: 700;
@@ -213,7 +216,9 @@ body {
 
 
 .card h3 {
-    font-size: 18px;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    font-weight: 400;
 }
 
 
@@ -233,7 +238,7 @@ textarea {
 
     min-height: 340px;
 
-    padding: 18px;
+    padding: 16px;
 
     resize: vertical;
 
@@ -266,12 +271,12 @@ textarea:focus {
     border-color: var(--accent);
 
     box-shadow:
-        0 0 0 4px var(--accent-light);
+        0 0 0 3px var(--accent-light);
 }
 
 
 textarea::placeholder {
-    color: #aaa0a0;
+    color: #a9a49a;
 }
 
 
@@ -323,7 +328,7 @@ button:active:not(:disabled) {
     align-items: center;
     gap: 8px;
 
-    padding: 13px 20px;
+    padding: 12px 20px;
 
     border-radius: var(--radius-small);
 
@@ -349,14 +354,14 @@ button:active:not(:disabled) {
 
 
 .text-button:hover {
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 
 .secondary-button {
     width: 100%;
 
-    padding: 13px;
+    padding: 12px;
 
     border: 1px solid var(--border);
     border-radius: var(--radius-small);
@@ -371,7 +376,7 @@ button:active:not(:disabled) {
 
 .secondary-button:hover:not(:disabled) {
     border-color: var(--accent);
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 
@@ -384,9 +389,9 @@ button:disabled {
 /* COUNT */
 
 .count-badge {
-    padding: 6px 10px;
+    padding: 5px 10px;
 
-    border-radius: 20px;
+    border-radius: var(--radius-small);
 
     background: var(--surface-soft);
 
@@ -428,18 +433,18 @@ button:disabled {
     align-items: center;
     justify-content: center;
 
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
 
     margin-bottom: 16px;
 
-    border-radius: 50%;
+    border-radius: var(--radius-medium);
 
-    background: var(--accent-light);
+    background: var(--taupe-light);
 
-    color: var(--accent);
+    color: var(--text);
 
-    font-size: 24px;
+    font-size: 20px;
 }
 
 
@@ -505,7 +510,7 @@ button:disabled {
 }
 
 
-/* RECOGNIZED / UNKNOWN ITEM STATES */
+/* RECOGNIZED / PENDING / MISSING / UNKNOWN ITEM STATES */
 
 .cc-item-row {
     display: flex;
@@ -521,7 +526,7 @@ button:disabled {
 
     padding: 3px 9px;
 
-    border-radius: 20px;
+    border-radius: var(--radius-small);
 
     font-size: 10px;
     font-weight: 700;
@@ -530,30 +535,41 @@ button:disabled {
 
 
 .cc-status.recognized {
-    background: #e3efe1;
-    color: #4f7a4a;
+    background: #dfe9dc;
+    color: #3f6a3a;
 }
 
 
-.cc-status.unknown {
+.cc-status.pending {
     background: var(--accent-light);
     color: var(--accent-dark);
 }
 
 
 .cc-status.missing {
-    background: #fbe8d3;
-    color: #a06a2a;
+    background: #f2e2c8;
+    color: #8a5f1f;
 }
 
 
-.cc-item.recognized.missing-link {
-    border-color: #f0dcb8;
+.cc-status.unknown {
+    background: var(--taupe-light);
+    color: var(--text-soft);
 }
 
 
 .cc-item.recognized {
-    border-color: #d3e6cf;
+    border-color: #c7d9c2;
+}
+
+
+.cc-item.pending {
+    border-color: var(--accent-light);
+}
+
+
+.cc-item.missing-link {
+    border-color: #e6d1a3;
 }
 
 
@@ -578,7 +594,7 @@ button:disabled {
 
 .cc-creator {
     font-weight: 700;
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 
@@ -587,7 +603,7 @@ button:disabled {
 
     margin-top: 8px;
 
-    color: var(--accent-dark);
+    color: var(--accent);
 
     font-size: 11px;
     font-weight: 600;
@@ -606,11 +622,11 @@ button:disabled {
 
     padding: 6px 12px;
 
-    border: 1px dashed var(--accent);
+    border: 1px dashed var(--text-soft);
     border-radius: var(--radius-small);
 
     background: transparent;
-    color: var(--accent-dark);
+    color: var(--text-soft);
 
     font-size: 11px;
     font-weight: 600;
@@ -618,7 +634,26 @@ button:disabled {
 
 
 .propose-button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--taupe-light);
+}
+
+
+.pending-note {
+    margin-top: 8px;
+
+    padding: 6px 10px;
+
+    border-radius: var(--radius-small);
+
     background: var(--accent-light);
+    color: var(--accent-dark);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    display: inline-block;
 }
 
 
@@ -666,25 +701,25 @@ button:disabled {
 }
 
 
-/* FOOTER ADMIN LINK */
+/* FOOTER ADMIN / BUNDLE LINKS */
 
 .admin-link {
     display: block;
 
-    margin: 8px auto 0;
+    margin: 6px auto 0;
 
     background: transparent;
     color: var(--text-soft);
 
-    font-size: 10px;
+    font-size: 11px;
     text-decoration: underline;
 
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 .admin-link:hover {
     opacity: 1;
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 
@@ -701,7 +736,7 @@ button:disabled {
 
     padding: 20px;
 
-    background: rgba(61, 54, 54, 0.45);
+    background: rgba(18, 22, 42, 0.45);
     backdrop-filter: blur(3px);
 
     z-index: 100;
@@ -718,7 +753,7 @@ button:disabled {
 
     overflow-y: auto;
 
-    padding: 26px;
+    padding: 24px;
 
     background: var(--surface);
 
@@ -736,7 +771,9 @@ button:disabled {
 }
 
 .modal-header h3 {
-    font-size: 17px;
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 400;
 }
 
 .modal-close {
@@ -747,7 +784,7 @@ button:disabled {
 }
 
 .modal-close:hover {
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 .modal-item-name {
@@ -760,13 +797,15 @@ button:disabled {
     word-break: break-word;
 }
 
-#submitForm {
+#submitForm,
+#bundleForm {
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
 
-#submitForm label {
+#submitForm label,
+#bundleForm label {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -777,7 +816,9 @@ button:disabled {
 }
 
 #submitForm input,
-#submitForm textarea {
+#submitForm textarea,
+#bundleForm input,
+#bundleForm textarea {
     padding: 10px 12px;
 
     border: 1px solid var(--border);
@@ -793,14 +834,29 @@ button:disabled {
     outline: none;
 }
 
+#bundleExport {
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+    font-size: 11.5px;
+}
+
 #submitForm input:focus,
-#submitForm textarea:focus {
+#submitForm textarea:focus,
+#bundleForm input:focus,
+#bundleForm textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-light);
+    box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 #submitForm textarea {
     min-height: 70px;
+    resize: vertical;
+}
+
+#bundleExport {
+    min-height: 140px;
     resize: vertical;
 }
 
@@ -863,7 +919,7 @@ button:disabled {
 }
 
 .admin-delete:hover {
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 .admin-entry-body {
@@ -875,7 +931,7 @@ button:disabled {
 }
 
 .admin-entry-body a {
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 .admin-copy {
@@ -895,7 +951,7 @@ button:disabled {
 
 .admin-copy:hover {
     border-color: var(--accent);
-    color: var(--accent-dark);
+    color: var(--accent);
 }
 
 
@@ -907,7 +963,7 @@ button:disabled {
 
     gap: 16px;
 
-    margin: 35px 0 70px;
+    margin: 32px 0 60px;
 }
 
 
@@ -920,14 +976,14 @@ button:disabled {
     border: 1px solid var(--border);
     border-radius: var(--radius-medium);
 
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.7);
 }
 
 
 .info-icon {
     flex-shrink: 0;
 
-    font-size: 18px;
+    font-size: 17px;
 }
 
 
@@ -948,7 +1004,7 @@ button:disabled {
 /* FOOTER */
 
 footer {
-    padding: 25px;
+    padding: 22px;
 
     border-top: 1px solid var(--border);
 
@@ -970,9 +1026,9 @@ footer {
 
     padding: 12px 18px;
 
-    border-radius: 10px;
+    border-radius: var(--radius-medium);
 
-    background: var(--text);
+    background: var(--accent-dark);
     color: white;
 
     font-size: 12px;
@@ -1014,7 +1070,7 @@ footer {
 
 
     .hero {
-        padding-top: 45px;
+        padding-top: 40px;
     }
 
 
@@ -1034,7 +1090,7 @@ footer {
 @media (max-width: 500px) {
 
     .site-header {
-        padding: 20px;
+        padding: 18px;
     }
 
 
@@ -1044,13 +1100,13 @@ footer {
 
 
     .card {
-        padding: 18px;
-        border-radius: 18px;
+        padding: 16px;
+        border-radius: 12px;
     }
 
 
     .hero h2 {
-        font-size: 36px;
+        font-size: 30px;
     }
 
 }
