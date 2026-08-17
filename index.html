@@ -1,10 +1,10 @@
-a<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Générateur de liste CC pour les builds Sims 4">
-    <title>CC Build List Generator</title>
+    <meta name="description" content="A CC credit list tool for The Sims 4 — paste your S4TI export, get links.">
+    <title>The List</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -15,8 +15,7 @@ a<!DOCTYPE html>
         <div class="logo">
             <span class="logo-star">✦</span>
             <div>
-                <h1>THE CC List</h1>
-                <p>Custom Content List Generator</p>
+                <h1>The List</h1>
             </div>
         </div>
     </header>
@@ -26,9 +25,9 @@ a<!DOCTYPE html>
 
         <section class="hero">
             <span class="eyebrow">THE SIMS 4</span>
-            <h2>Generate your CC List</h2>
+            <h2>The simple way to credit your CC, with links.</h2>
             <p>
-                Copy the CC list from S4TI, and generate your USED CC list
+                Paste your S4TI CC list, we do the rest.
             </p>
         </section>
 
@@ -41,7 +40,7 @@ a<!DOCTYPE html>
                 <div class="card-header">
                     <div>
                         <span class="step">01</span>
-                        <h3>Your CC List</h3>
+                        <h3>Your S4TI Export</h3>
                     </div>
                     <button id="clearButton" class="text-button">
                         Clear
@@ -49,7 +48,7 @@ a<!DOCTYPE html>
                 </div>
 
                 <p class="card-description">
-                    Paste your list here
+                    Straight from S4TI, no cleanup needed.
                 </p>
 
                 <textarea
@@ -68,7 +67,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
                     <button id="generateButton" class="primary-button">
                         <span>✦</span>
-                        Generate the list
+                        Create the list
                     </button>
                 </div>
 
@@ -81,7 +80,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
                 <div class="card-header">
                     <div>
                         <span class="step">02</span>
-                        <h3>Results</h3>
+                        <h3>Your CC List</h3>
                     </div>
 
                     <span id="itemCount" class="count-badge">
@@ -93,9 +92,9 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
                     <div class="empty-state">
                         <div class="empty-icon">✦</div>
-                        <h4>The result will appear here</h4>
+                        <h4>Nothing here yet</h4>
                         <p>
-                            Paste your CC on the left, then click on «Generate the list».
+                            Paste your export on the left and hit "Create the list".
                         </p>
                     </div>
 
@@ -119,9 +118,9 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
             <div class="info-card">
                 <span class="info-icon">♡</span>
                 <div>
-                    <h4> Automatic Merge</h4>
+                    <h4>No duplicates</h4>
                     <p>
-                        Identical CC are automatically grouped.
+                        Used the same CC five times? It only shows up once.
                     </p>
                 </div>
             </div>
@@ -129,9 +128,9 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
             <div class="info-card">
                 <span class="info-icon">🔗</span>
                 <div>
-                    <h4>Help to shape the tool</h4>
+                    <h4>You spot it, we add it</h4>
                     <p>
-                        This tool is a community tool. Missing set, link, creator ? Help contributing to the database by providing missing information through the dialog box. Informations will be added after a quick verification check
+                        Missing a set, link, or creator? Submit it and we'll add it after a quick check.
                     </p>
                 </div>
             </div>
@@ -141,7 +140,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
                 <div>
                     <h4>It's just that simple</h4>
                     <p>
-                        Just use the S4TI CC list & generate your CC list. Paste it directly in your post !
+                        Copy your S4TI export, paste it in, and get a ready-to-post credit list.
                     </p>
                 </div>
             </div>
@@ -152,9 +151,9 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
 
     <footer>
-        <p>CC Build List Generator · Made with ♡</p>
+        <p>The List · Made with ♡</p>
         <button id="adminToggle" class="admin-link" type="button">
-            See my propositions (local test)
+            View my submissions (local test)
         </button>
     </footer>
 
@@ -164,7 +163,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
         <div class="modal-box">
 
             <div class="modal-header">
-                <h3>Suggest a link</h3>
+                <h3>Submit missing info</h3>
                 <button id="closeModal" class="modal-close" type="button">✕</button>
             </div>
 
@@ -174,12 +173,12 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
                 <label>
                     Set Name *
-                    <input type="text" id="fieldSetName" required placeholder="Ex : Cozy Cabin">
+                    <input type="text" id="fieldSetName" required placeholder="Ex: Cozy Cabin">
                 </label>
 
                 <label>
                     Creator *
-                    <input type="text" id="fieldCreator" required placeholder="Ex : Valia">
+                    <input type="text" id="fieldCreator" required placeholder="Ex: Valia">
                 </label>
 
                 <label>
@@ -188,8 +187,8 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
                 </label>
 
                 <label>
-                    Note (optionnal)
-                    <textarea id="fieldNote" placeholder="Useful detail for moderation ?"></textarea>
+                    Note (optional)
+                    <textarea id="fieldNote" placeholder="Useful detail for moderation?"></textarea>
                 </label>
 
                 <p class="modal-disclaimer">
@@ -228,7 +227,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
 
     <div id="toast" class="toast">
-        List copied !
+        List copied!
     </div>
 
 
