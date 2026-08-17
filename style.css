@@ -886,6 +886,17 @@ button:disabled {
     margin-top: 14px;
 }
 
+.admin-clear-all {
+    margin-top: 10px;
+
+    color: #a4432f;
+    font-weight: 600;
+}
+
+.admin-clear-all:hover {
+    color: #7d3222;
+}
+
 .admin-empty {
     color: var(--text-soft);
     font-size: 12px;
