@@ -291,6 +291,24 @@ function classifyAndGroup(items) {
     items.forEach((item) => {
 
         const instance = (item.instances[0] || "").trim();
+        const dbMatch = lookupItem(item);
+
+        // A real database match with a link always wins — this is what
+        // makes a "pending" item flip back to "recognized" automatically
+        // once it's actually approved and copied into the Sheet, without
+        // needing to manually clear the local submission first.
+        if (dbMatch && dbMatch.link && dbMatch.link.trim()) {
+
+            const key = `${dbMatch.creator}::${dbMatch.setName}`;
+
+            if (!buckets.recognized.has(key)) {
+                buckets.recognized.set(key, { ...dbMatch, items: [] });
+            }
+
+            buckets.recognized.get(key).items.push(item);
+            return;
+        }
+
         const pending = pendingIndex[instance];
 
         if (pending) {
@@ -307,20 +325,6 @@ function classifyAndGroup(items) {
             }
 
             buckets.pending.get(key).items.push(item);
-            return;
-        }
-
-        const dbMatch = lookupItem(item);
-
-        if (dbMatch && dbMatch.link && dbMatch.link.trim()) {
-
-            const key = `${dbMatch.creator}::${dbMatch.setName}`;
-
-            if (!buckets.recognized.has(key)) {
-                buckets.recognized.set(key, { ...dbMatch, items: [] });
-            }
-
-            buckets.recognized.get(key).items.push(item);
             return;
         }
 
@@ -691,6 +695,7 @@ const adminPanel = document.getElementById("adminPanel");
 const adminToggle = document.getElementById("adminToggle");
 const closeAdminButton = document.getElementById("closeAdmin");
 const adminList = document.getElementById("adminList");
+const clearAllButton = document.getElementById("clearAllSubmissions");
 
 let currentProposedItemName = "";
 let currentProposedInstance = "";
@@ -984,6 +989,32 @@ adminList.addEventListener("click", async (event) => {
             // clipboard unavailable, silently ignore
         }
     }
+});
+
+clearAllButton.addEventListener("click", () => {
+
+    const submissions = getSubmissions();
+
+    if (submissions.length === 0) {
+        return;
+    }
+
+    const confirmed = window.confirm(
+        `Clear all ${submissions.length} local submissions? This can't be undone.`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    saveSubmissions([]);
+    renderAdminList();
+
+    if (generatedItems.length > 0) {
+        renderResults(generatedItems);
+    }
+
+    showToast("All local submissions cleared.");
 });
 
 
