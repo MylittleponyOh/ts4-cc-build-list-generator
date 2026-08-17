@@ -152,6 +152,9 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
     <footer>
         <p>The List · Made with ♡</p>
+        <button id="bundleToggle" class="admin-link" type="button">
+            Are you a creator? Submit a whole set →
+        </button>
         <button id="adminToggle" class="admin-link" type="button">
             View my submissions (local test)
         </button>
@@ -205,19 +208,74 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
     </div>
 
 
+    <!-- BUNDLE SUBMISSION MODAL (for creators submitting a whole set at once) -->
+    <div id="bundleModal" class="modal-overlay">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <h3>Submit a whole set</h3>
+                <button id="closeBundle" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-item-name">
+                Is your CC part of this list already? Paste your own S4TI export
+                for the set, add one link, and we'll register every item in it at once.
+            </p>
+
+            <form id="bundleForm">
+
+                <label>
+                    Your S4TI export for this set *
+                    <textarea id="bundleExport" required placeholder="[YourName_SetName_Item1]
+Instance: 0x00000000!0x...
+
+[YourName_SetName_Item2]
+Instance: 0x00000000!0x..."></textarea>
+                </label>
+
+                <label>
+                    Set Name *
+                    <input type="text" id="bundleSetName" required placeholder="Ex: Cozy Cabin">
+                </label>
+
+                <label>
+                    Creator *
+                    <input type="text" id="bundleCreator" required placeholder="Ex: Valia">
+                </label>
+
+                <label>
+                    Download Link *
+                    <input type="url" id="bundleLink" required placeholder="https://...">
+                </label>
+
+                <p class="modal-disclaimer">
+                    Every item found in your export will be submitted for validation
+                    under this same set and link.
+                </p>
+
+                <button type="submit" class="primary-button modal-submit">
+                    Submit the whole set
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+
     <!-- ADMIN PANEL (local test only) -->
     <div id="adminPanel" class="modal-overlay">
         <div class="modal-box admin-box">
 
             <div class="modal-header">
-                <h3>Propositions en attente (local)</h3>
+                <h3>Pending submissions (local)</h3>
                 <button id="closeAdmin" class="modal-close" type="button">✕</button>
             </div>
 
             <p class="modal-disclaimer">
-                Ces propositions sont stockées uniquement dans ce navigateur —
-                pas encore synchronisées entre utilisatrices. Utilise "Copier"
-                pour les ajouter manuellement à la base pour l'instant.
+                These submissions are stored only in this browser — not yet
+                synced across users. Use "Copy" to manually add them to the
+                database for now.
             </p>
 
             <div id="adminList" class="admin-list"></div>
