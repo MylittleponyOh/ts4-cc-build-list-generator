@@ -160,6 +160,7 @@ body {
 
 .step {
     position: relative;
+    display: inline-block;
 
     width: 26px;
     height: 26px;
