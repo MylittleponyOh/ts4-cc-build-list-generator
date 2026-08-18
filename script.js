@@ -564,7 +564,7 @@ function showEmptyState() {
 
     result.innerHTML = `
         <div class="empty-state">
-            <div class="empty-icon">✦</div>
+            <img src="logo.png" alt="" class="empty-icon">
             <h4>Nothing here yet</h4>
             <p>Paste your export on the left and hit "Create the list".</p>
         </div>
@@ -610,7 +610,7 @@ generateButton.addEventListener("click", async () => {
     await databaseLoadPromise;
 
     generateButton.disabled = false;
-    generateButton.innerHTML = '<span>✦</span> Create the list';
+    generateButton.innerHTML = '<img src="mark.png" alt="" class="button-mark"> Create the list';
 
     generateList();
 });
