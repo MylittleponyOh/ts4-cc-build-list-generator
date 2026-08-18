@@ -160,10 +160,12 @@ body {
 
 .step {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    width: 26px;
-    height: 26px;
+    width: 40px;
+    height: 40px;
 
     flex-shrink: 0;
 }
@@ -181,11 +183,10 @@ body {
 
 
 .step-number {
-    position: absolute;
-    right: 4px;
-    bottom: 3px;
+    position: relative;
+    z-index: 1;
 
-    font-size: 9px;
+    font-size: 14px;
     font-weight: 800;
     color: white;
 
@@ -297,13 +298,18 @@ button:active:not(:disabled) {
 .primary-button {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 7px;
 
-    padding: 11px 18px;
+    padding: 13px 22px;
 
     border-radius: var(--radius-small);
 
-    background: var(--accent);
+    background-image: url("button.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: transparent;
+
     color: white;
 
     font-size: 12.5px;
@@ -312,17 +318,7 @@ button:active:not(:disabled) {
 
 
 .primary-button:hover {
-    background: var(--accent-dark);
-    box-shadow: 0 3px 10px rgba(13, 13, 13, 0.22);
-}
-
-
-.button-mark {
-    width: 14px;
-    height: 14px;
-    display: block;
-
-    filter: invert(1);
+    filter: brightness(1.15);
 }
 
 
@@ -417,8 +413,6 @@ button:disabled {
     margin-bottom: 14px;
 
     object-fit: contain;
-
-    opacity: 0.15;
 }
 
 
