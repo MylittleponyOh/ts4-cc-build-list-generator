@@ -680,6 +680,7 @@ const GOOGLE_FORM_ACTION_URL =
     "https://docs.google.com/forms/d/e/1FAIpQLSdqWNunZ8ghcE3SNIvI5jvryRLfDvzF_UgVLYNkUcrcyAwPrQ/formResponse";
 
 const GOOGLE_FORM_ENTRIES = {
+    itemName: "entry.189940358",
     instance: "entry.2096533801",
     setName: "entry.261787736",
     creator: "entry.762747753",
@@ -752,6 +753,7 @@ async function submitToGoogleForm(entryValues) {
 
     const body = new URLSearchParams();
 
+    body.append(GOOGLE_FORM_ENTRIES.itemName, entryValues.itemName || "");
     body.append(GOOGLE_FORM_ENTRIES.instance, entryValues.instance || "");
     body.append(GOOGLE_FORM_ENTRIES.setName, entryValues.setName || "");
     body.append(GOOGLE_FORM_ENTRIES.creator, entryValues.creator || "");
@@ -856,31 +858,35 @@ bundleForm.addEventListener("submit", async (event) => {
     const link = document.getElementById("bundleLink").value.trim();
 
     const items = parseS4TI(exportText);
-    const instances = [];
+
+    const submissionsToSend = [];
 
     items.forEach((item) => {
         item.instances.forEach((instance) => {
             if (instance.trim()) {
-                instances.push(instance.trim());
+                submissionsToSend.push({
+                    itemName: formatCCName(item.name),
+                    instance: instance.trim()
+                });
             }
         });
     });
 
-    if (instances.length === 0) {
+    if (submissionsToSend.length === 0) {
         showToast("No Instance ID found in that export.");
         return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = `Sending ${instances.length} items...`;
+    submitBtn.textContent = `Sending ${submissionsToSend.length} items...`;
 
     const submissions = getSubmissions();
 
-    for (const instance of instances) {
+    for (const entry of submissionsToSend) {
 
         const submission = {
-            itemName: setName,
-            instance: instance,
+            itemName: entry.itemName,
+            instance: entry.instance,
             setName: setName,
             creator: creator,
             link: link,
@@ -899,7 +905,7 @@ bundleForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit the whole set";
 
-    showToast(`Submitted ${instances.length} items for review 🦄`);
+    showToast(`Submitted ${submissionsToSend.length} items for review 🦄`);
 
     if (generatedItems.length > 0) {
         renderResults(generatedItems);
