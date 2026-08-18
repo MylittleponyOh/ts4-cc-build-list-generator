@@ -610,7 +610,7 @@ generateButton.addEventListener("click", async () => {
     await databaseLoadPromise;
 
     generateButton.disabled = false;
-    generateButton.innerHTML = '<img src="mark.png" alt="" class="button-mark"> Create the list';
+    generateButton.innerHTML = 'Create the list';
 
     generateList();
 });
