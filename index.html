@@ -21,8 +21,8 @@
     <main class="container">
 
         <section class="hero">
-            <span class="eyebrow">THE SIMS 4</span>
-            <h2>The simplest way to create your CC list, with links.</h2>
+            
+            <h2>Build. List. Share.</h2>
             <p>
                 Paste your S4TI CC list, we do the rest.
             </p>
@@ -36,7 +36,10 @@
 
                 <div class="card-header">
                     <div>
-                        <span class="step">01</span>
+                        <span class="step">
+                            <img src="mark.png" alt="" class="step-mark">
+                            <span class="step-number">01</span>
+                        </span>
                         <h3>Your S4TI Export</h3>
                     </div>
                     <button id="clearButton" class="text-button">
@@ -53,17 +56,17 @@
                     placeholder="[VALIA_Cozy_Cabin_Closet_3]
 Instance: 0x00000000!0x00000000060da606.0x319e4f1d
 
-[VALIA_Cozy_Cabin_Curtain_v2_Short_Right]
-Instance: 0x00000000!0x0000000008deb2b8.0x319e4f1d
+[SYB_Love_Is_In_The_Air_Wine_Glasses]
+Instance: 0x80000000!0xdbfe2117dc6e03cd.0x319e4f1d
 
-[VALIA_Cabin_Window_Double_Glass]
-Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
+[Pierisim_TIDYING_UP_dishwahing_soap]
+Instance: 0x80000000!0xfdfac313985b07a5.0x319e4f1d"></textarea>
 
                 <div class="input-footer">
                     <span id="characterCount">0 characters</span>
 
                     <button id="generateButton" class="primary-button">
-                        <span>✦</span>
+                        <img src="mark.png" alt="" class="button-mark">
                         Create the list
                     </button>
                 </div>
@@ -76,7 +79,10 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
                 <div class="card-header">
                     <div>
-                        <span class="step">02</span>
+                        <span class="step">
+                            <img src="mark.png" alt="" class="step-mark">
+                            <span class="step-number">02</span>
+                        </span>
                         <h3>Your CC List</h3>
                     </div>
 
@@ -88,7 +94,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
                 <div id="result" class="result-container">
 
                     <div class="empty-state">
-                        <div class="empty-icon">✦</div>
+                        <img src="logo.png" alt="" class="empty-icon">
                         <h4>Nothing here yet</h4>
                         <p>
                             Paste your export on the left and hit "Create the list".
@@ -113,7 +119,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
         <section class="info-section">
 
             <div class="info-card">
-                <span class="info-icon">♡</span>
+                <span class="info-icon"></span>
                 <div>
                     <h4>No duplicates</h4>
                     <p>
@@ -123,7 +129,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
             </div>
 
             <div class="info-card">
-                <span class="info-icon">🔗</span>
+                <span class="info-icon"></span>
                 <div>
                     <h4>You spot it, we add it</h4>
                     <p>
@@ -133,7 +139,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
             </div>
 
             <div class="info-card">
-                <span class="info-icon">✦</span>
+                <span class="info-icon"></span>
                 <div>
                     <h4>It's just that simple</h4>
                     <p>
@@ -148,7 +154,7 @@ Instance: 0x00000000!0x0000000009398c21.0x319e4f1d"></textarea>
 
 
     <footer>
-        <p>The List · Made with ♡</p>
+        <p>The List  | 2026</p>
         <button id="bundleToggle" class="admin-link" type="button">
             Are you a creator? Submit a whole set →
         </button>
@@ -232,12 +238,12 @@ Instance: 0x00000000!0x..."></textarea>
 
                 <label>
                     Set Name *
-                    <input type="text" id="bundleSetName" required placeholder="Ex: Cozy Cabin">
+                    <input type="text" id="bundleSetName" required placeholder="Ex: Nocturne">
                 </label>
 
                 <label>
                     Creator *
-                    <input type="text" id="bundleCreator" required placeholder="Ex: Valia">
+                    <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh">
                 </label>
 
                 <label>
