@@ -49,6 +49,49 @@ async function loadDatabase() {
 const databaseLoadPromise = loadDatabase();
 
 
+// ------------------------------------------
+// GLOBAL CLAIMED INDEX (Form responses Sheet)
+// ------------------------------------------
+// Reads the "Réponses au formulaire 1" tab of the CC_List_Propositions
+// Form — this tells us if ANY user (not just this browser) has already
+// submitted a link for a given Instance ID, so we don't collect 50
+// duplicate requests for the same popular unknown set.
+
+const CLAIMED_URL =
+    "https://opensheet.elk.sh/14jZ0bHqsi-CfscRTJptWwyu18tFbSnUsz_EyGztPOCI/R%C3%A9ponses%20au%20formulaire%201";
+
+let CLAIMED_SET = new Set();
+
+async function loadClaimed() {
+
+    try {
+
+        const response = await fetch(CLAIMED_URL);
+        const rows = await response.json();
+
+        const claimed = new Set();
+
+        rows.forEach((row) => {
+
+            const id = (row["Instance ID"] || "").trim();
+
+            if (id) {
+                claimed.add(id);
+            }
+        });
+
+        CLAIMED_SET = claimed;
+
+    } catch (error) {
+
+        console.error("Could not load the claimed index:", error);
+        CLAIMED_SET = new Set();
+    }
+}
+
+const claimedLoadPromise = loadClaimed();
+
+
 function lookupItem(item) {
 
     for (const instance of item.instances) {
@@ -125,6 +168,8 @@ function updateCharacterCount() {
     const count = ccInput.value.length;
 
     characterCount.textContent = `${count.toLocaleString("en-US")} characters`;
+
+    generateButton.disabled = ccInput.value.trim().length === 0;
 }
 
 ccInput.addEventListener("input", updateCharacterCount);
@@ -286,6 +331,7 @@ function classifyAndGroup(items) {
         missing: new Map()
     };
 
+    const claimedItems = [];
     const unknownItems = [];
 
     items.forEach((item) => {
@@ -328,6 +374,16 @@ function classifyAndGroup(items) {
             return;
         }
 
+        // Someone else (a different browser) already submitted a link
+        // for this exact Instance ID. We don't show their unverified
+        // set/creator/link as fact, and we hide the propose button so
+        // it can't be requested twice — the item is just "claimed"
+        // until it's actually validated into the real database.
+        if (CLAIMED_SET.has(instance)) {
+            claimedItems.push(item);
+            return;
+        }
+
         if (dbMatch) {
 
             const key = `${dbMatch.creator}::${dbMatch.setName}`;
@@ -351,6 +407,7 @@ function classifyAndGroup(items) {
         pendingGroups: Array.from(buckets.pending.values()),
         recognizedGroups: Array.from(buckets.recognized.values()),
         missingGroups: Array.from(buckets.missing.values()),
+        claimedItems,
         unknownItems
     };
 }
@@ -407,7 +464,7 @@ function renderResults(items) {
     const list = document.createElement("div");
     list.className = "result-list";
 
-    const { pendingGroups, recognizedGroups, missingGroups, unknownItems } =
+    const { pendingGroups, recognizedGroups, missingGroups, claimedItems, unknownItems } =
         classifyAndGroup(items);
 
     // PENDING GROUPS (user's own submission, awaiting validation)
@@ -520,6 +577,27 @@ function renderResults(items) {
         list.appendChild(element);
     });
 
+    // CLAIMED ITEMS (already submitted by someone else, awaiting validation)
+
+    claimedItems.forEach((item) => {
+
+        const element = document.createElement("div");
+        element.className = "cc-item claimed";
+
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">${escapeHTML(formatCCName(item.name))}</span>
+                <span class="cc-status claimed">🔒 claimed</span>
+            </div>
+
+            <div class="cc-meta cc-meta-unknown">
+                Already reported by another user — awaiting validation
+            </div>
+        `;
+
+        list.appendChild(element);
+    });
+
     // UNKNOWN ITEMS (not in the database at all)
 
     unknownItems.forEach((item) => {
@@ -598,6 +676,28 @@ function clearAll() {
 clearButton.addEventListener("click", clearAll);
 
 
+const refreshButton = document.getElementById("refreshButton");
+
+refreshButton.addEventListener("click", async () => {
+
+    if (generatedItems.length === 0) {
+        showToast("Nothing to refresh yet — create a list first.");
+        return;
+    }
+
+    refreshButton.disabled = true;
+    refreshButton.textContent = "⟳ Checking...";
+
+    await Promise.all([loadDatabase(), loadClaimed()]);
+    renderResults(generatedItems);
+
+    refreshButton.disabled = false;
+    refreshButton.textContent = "⟳ Refresh";
+
+    showToast("Database re-checked!");
+});
+
+
 // ==========================================
 // GENERATE BUTTON
 // ==========================================
@@ -607,9 +707,9 @@ generateButton.addEventListener("click", async () => {
     generateButton.disabled = true;
     generateButton.textContent = "Loading...";
 
-    await databaseLoadPromise;
+    await Promise.all([databaseLoadPromise, claimedLoadPromise]);
 
-    generateButton.disabled = false;
+    generateButton.disabled = ccInput.value.trim().length === 0;
     generateButton.innerHTML = 'Create the list';
 
     generateList();
@@ -626,7 +726,7 @@ async function copyResult() {
         return;
     }
 
-    const { pendingGroups, recognizedGroups, missingGroups, unknownItems } =
+    const { pendingGroups, recognizedGroups, missingGroups, claimedItems, unknownItems } =
         classifyAndGroup(generatedItems);
 
     const lines = [
@@ -639,6 +739,9 @@ async function copyResult() {
         ),
         ...missingGroups.map(
             (group) => `${group.setName} (${group.creator}) — [link needed]`
+        ),
+        ...claimedItems.map(
+            (item) => `${formatCCName(item.name)} — [already reported, awaiting validation]`
         ),
         ...unknownItems.map(
             (item) => `${formatCCName(item.name)} — [link needed]`
@@ -794,7 +897,6 @@ submitForm.addEventListener("submit", async (event) => {
         setName: document.getElementById("fieldSetName").value.trim(),
         creator: document.getElementById("fieldCreator").value.trim(),
         link: document.getElementById("fieldLink").value.trim(),
-        note: document.getElementById("fieldNote").value.trim(),
         submittedAt: new Date().toISOString()
     };
 
