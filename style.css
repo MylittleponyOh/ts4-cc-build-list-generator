@@ -362,7 +362,7 @@ button:active:not(:disabled) {
     padding: 11px;
 
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius-small);
+    border-radius: 2px 16px 2px 2px;
 
     background: white;
     color: var(--text);
@@ -372,9 +372,22 @@ button:active:not(:disabled) {
 }
 
 
+.secondary-button:not(:disabled) {
+    background: var(--accent);
+    border-color: transparent;
+    color: white;
+}
+
+
 .secondary-button:hover:not(:disabled) {
-    border-color: var(--text);
-    box-shadow: 0 2px 6px rgba(13, 13, 13, 0.08);
+    background: var(--accent-dark);
+    box-shadow: 0 2px 6px rgba(13, 13, 13, 0.15);
+}
+
+
+.primary-button:disabled,
+.secondary-button:disabled {
+    opacity: 1;
 }
 
 
@@ -397,6 +410,18 @@ button:disabled {
     color: var(--text-soft);
 
     font-size: 10.5px;
+}
+
+
+.card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.refresh-button {
+    padding: 4px 6px;
 }
 
 
@@ -547,6 +572,17 @@ button:disabled {
     background: var(--surface-soft);
     color: var(--text-soft);
     border: 1px solid var(--border);
+}
+
+
+.cc-status.claimed {
+    background: #e9e2f2;
+    color: #5a3d80;
+}
+
+
+.cc-item.claimed {
+    border-color: #d9caea;
 }
 
 
