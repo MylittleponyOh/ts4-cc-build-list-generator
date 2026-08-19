@@ -316,18 +316,30 @@ button:active:not(:disabled) {
 
     border-radius: 2px 16px 2px 2px;
 
-    background: var(--accent);
-
-    color: white;
+    background: white;
+    border: 1px solid var(--border-strong);
+    color: var(--text);
 
     font-size: 12.5px;
     font-weight: 600;
 }
 
 
-.primary-button:hover {
+.primary-button:not(:disabled) {
+    background: var(--accent);
+    border-color: transparent;
+    color: white;
+}
+
+
+.primary-button:not(:disabled):hover {
     background: var(--accent-dark);
     box-shadow: 0 3px 10px rgba(13, 13, 13, 0.22);
+}
+
+
+.primary-button:disabled {
+    opacity: 1;
 }
 
 
