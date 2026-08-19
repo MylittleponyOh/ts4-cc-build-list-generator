@@ -52,13 +52,13 @@
 
                 <textarea
                     id="ccInput"
-                    placeholder="[CreatorName_SetName_ItemName]
+                    placeholder="[YourCreatorName_YourSetName_Item1]
 Instance: 0x00000000!0x0000000000000001.0x00000000
 
-[CreatorName_SetName_ItemName]
+[AnotherCreator_AnotherSet_Item2]
 Instance: 0x00000000!0x0000000000000002.0x00000000
 
-[CreatorName_SetName_ItemName]
+[ThirdCreator_ThirdSet_Item3]
 Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <div class="input-footer">
@@ -84,9 +84,14 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         <h3>Your CC List</h3>
                     </div>
 
-                    <span id="itemCount" class="count-badge">
-                        0 CC
-                    </span>
+                    <div class="card-header-right">
+                        <span id="itemCount" class="count-badge">
+                            0 CC
+                        </span>
+                        <button id="refreshButton" class="text-button refresh-button" type="button" title="Re-check the database">
+                            ⟳ Refresh
+                        </button>
+                    </div>
                 </div>
 
                 <div id="result" class="result-container">
@@ -188,11 +193,6 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 <label>
                     Download Link *
                     <input type="url" id="fieldLink" required placeholder="https://...">
-                </label>
-
-                <label>
-                    Note (optional)
-                    <textarea id="fieldNote" placeholder="Useful detail for moderation?"></textarea>
                 </label>
 
                 <p class="modal-disclaimer">
