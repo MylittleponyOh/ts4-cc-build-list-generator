@@ -208,7 +208,7 @@ const TAG_FLAG_KEY = "cc_tagflag_enabled";
 const TAG_CATEGORIES = ["Early Access", "Free", "Permanently Paywalled", "CurseForge"];
 
 let tagFlagEnabled = localStorage.getItem(TAG_FLAG_KEY) === "true";
-let itemTags = {}; // { [key]: "Early Access" | "Free" | ... } — one flag max per key
+let itemTags = {}; // { [key]: "Early Access" | "Free" | ... }, one flag max per key
 
 const tagFlagToggle = document.getElementById("tagFlagToggle");
 tagFlagToggle.setAttribute("aria-pressed", String(tagFlagEnabled));
@@ -731,7 +731,7 @@ function renderResults(items) {
                             value="${index}"
                             ${isChecked ? "checked" : ""}
                         >
-                        <span>${escapeHTML(candidate.setName)} — <strong>${escapeHTML(candidate.creator)}</strong></span>
+                        <span>${escapeHTML(candidate.setName)}, <strong>${escapeHTML(candidate.creator)}</strong></span>
                         ${index === suggestedIndex ? '<span class="multi-suggested">suggested</span>' : ""}
                     </label>
                 `;
@@ -763,7 +763,7 @@ function renderResults(items) {
             </div>
 
             <div class="cc-meta">
-                This Instance ID matches more than one known set — pick the one you actually have:
+                This Instance ID matches more than one known set, pick the one you actually have:
             </div>
 
             <div class="multi-options">
@@ -776,7 +776,7 @@ function renderResults(items) {
                         value="none"
                         ${noneChecked ? "checked" : ""}
                     >
-                    <span>None of these — submit a different link</span>
+                    <span>None of these, submit a different link</span>
                 </label>
             </div>
 
@@ -813,7 +813,7 @@ function renderResults(items) {
             </div>
 
             <div class="cc-meta cc-meta-unknown">
-                Already reported by another user — awaiting validation
+                Already reported by another user, awaiting validation
             </div>
         `;
 
@@ -903,7 +903,7 @@ const refreshButton = document.getElementById("refreshButton");
 refreshButton.addEventListener("click", async () => {
 
     if (generatedItems.length === 0) {
-        showToast("Nothing to refresh yet — create a list first.");
+        showToast("Nothing to refresh yet, create a list first.");
         return;
     }
 
@@ -959,8 +959,8 @@ async function copyResult() {
         const key = `${group.creator}::${group.setName}`;
 
         const text = safeLink
-            ? `${group.setName} (${group.creator}) — [download here](${safeLink})`
-            : `${group.setName} (${group.creator}) — [link needed]`;
+            ? `${group.setName} (${group.creator}), [download here](${safeLink})`
+            : `${group.setName} (${group.creator}), [link needed]`;
 
         rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
     });
@@ -971,8 +971,8 @@ async function copyResult() {
         const key = `${group.creator}::${group.setName}`;
 
         const text = safeLink
-            ? `${group.setName} (${group.creator}) — [download here](${safeLink}) (pending validation)`
-            : `${group.setName} (${group.creator}) — [link needed] (pending validation)`;
+            ? `${group.setName} (${group.creator}), [download here](${safeLink}) (pending validation)`
+            : `${group.setName} (${group.creator}), [link needed] (pending validation)`;
 
         rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
     });
@@ -988,12 +988,12 @@ async function copyResult() {
         const label = formatCCName(group.items[0].name);
 
         if (selection === undefined) {
-            rawLines.push({ text: `${label} — [choose a match in the tool before copying]`, category: undefined });
+            rawLines.push({ text: `${label}, [choose a match in the tool before copying]`, category: undefined });
             return;
         }
 
         if (selection === "none") {
-            rawLines.push({ text: `${label} — [link needed]`, category: undefined });
+            rawLines.push({ text: `${label}, [link needed]`, category: undefined });
             return;
         }
 
@@ -1001,8 +1001,8 @@ async function copyResult() {
         const safeLink = sanitizeUrl(chosen.link);
 
         const text = safeLink
-            ? `${chosen.setName} (${chosen.creator}) — [download here](${safeLink})`
-            : `${chosen.setName} (${chosen.creator}) — [link needed]`;
+            ? `${chosen.setName} (${chosen.creator}), [download here](${safeLink})`
+            : `${chosen.setName} (${chosen.creator}), [link needed]`;
 
         rawLines.push({ text, category: tagFlagEnabled ? itemTags[group.instance] : undefined });
     });
@@ -1012,20 +1012,20 @@ async function copyResult() {
         const key = `${group.creator}::${group.setName}`;
 
         rawLines.push({
-            text: `${group.setName} (${group.creator}) — [link needed]`,
+            text: `${group.setName} (${group.creator}), [link needed]`,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
 
     claimedItems.forEach((item) => {
         rawLines.push({
-            text: `${formatCCName(item.name)} — [already reported, awaiting validation]`,
+            text: `${formatCCName(item.name)}, [already reported, awaiting validation]`,
             category: undefined
         });
     });
 
     unknownItems.forEach((item) => {
-        rawLines.push({ text: `${formatCCName(item.name)} — [link needed]`, category: undefined });
+        rawLines.push({ text: `${formatCCName(item.name)}, [link needed]`, category: undefined });
     });
 
     let text;
