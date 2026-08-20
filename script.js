@@ -1124,6 +1124,42 @@ submitForm.addEventListener("submit", async (event) => {
 
 
 // ==========================================
+// TOOLBOX (help icon, bottom-right)
+// ==========================================
+
+const toolboxToggle = document.getElementById("toolboxToggle");
+const toolboxModal = document.getElementById("toolboxModal");
+const closeToolboxButton = document.getElementById("closeToolbox");
+
+function openToolboxModal() {
+    toolboxModal.classList.add("show");
+}
+
+function closeToolboxModal() {
+    toolboxModal.classList.remove("show");
+}
+
+toolboxToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toolboxModal.classList.contains("show") ? closeToolboxModal() : openToolboxModal();
+});
+
+closeToolboxButton.addEventListener("click", closeToolboxModal);
+
+document.addEventListener("click", (event) => {
+
+    const isOutside =
+        toolboxModal.classList.contains("show") &&
+        !toolboxModal.contains(event.target) &&
+        event.target !== toolboxToggle;
+
+    if (isOutside) {
+        closeToolboxModal();
+    }
+});
+
+
+// ==========================================
 // BUNDLE SUBMISSION (whole set at once, for creators)
 // ==========================================
 
@@ -1133,6 +1169,7 @@ const closeBundleButton = document.getElementById("closeBundle");
 const bundleForm = document.getElementById("bundleForm");
 
 function openBundleModal() {
+    closeToolboxModal();
     bundleForm.reset();
     bundleModal.classList.add("show");
 }
@@ -1264,6 +1301,7 @@ function renderAdminList() {
 }
 
 function openAdminPanel() {
+    closeToolboxModal();
     renderAdminList();
     adminPanel.classList.add("show");
 }
