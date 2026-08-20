@@ -1325,6 +1325,8 @@ const bundleForm = document.getElementById("bundleForm");
 function openBundleModal() {
     closeToolboxModal();
     bundleForm.reset();
+    document.getElementById("bundleProgress").classList.remove("show");
+    document.getElementById("bundleProgressFill").style.width = "0%";
     bundleModal.classList.add("show");
 }
 
@@ -1373,9 +1375,17 @@ bundleForm.addEventListener("submit", async (event) => {
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = `Sending ${submissionsToSend.length} items...`;
+    submitBtn.textContent = `Sending 0 / ${submissionsToSend.length}...`;
+
+    const progressBar = document.getElementById("bundleProgress");
+    const progressFill = document.getElementById("bundleProgressFill");
+
+    progressBar.classList.add("show");
+    progressFill.style.width = "0%";
 
     const submissions = getSubmissions();
+
+    let sent = 0;
 
     for (const entry of submissionsToSend) {
 
@@ -1391,11 +1401,20 @@ bundleForm.addEventListener("submit", async (event) => {
 
         await submitToGoogleForm(submission);
         submissions.push(submission);
+
+        sent += 1;
+        const percent = Math.round((sent / submissionsToSend.length) * 100);
+
+        progressFill.style.width = `${percent}%`;
+        submitBtn.textContent = `Sending ${sent} / ${submissionsToSend.length}...`;
     }
 
     saveSubmissions(submissions);
 
     closeBundleModal();
+
+    progressBar.classList.remove("show");
+    progressFill.style.width = "0%";
 
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit the whole set";
