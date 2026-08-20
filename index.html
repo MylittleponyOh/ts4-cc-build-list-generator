@@ -157,14 +157,71 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
 
     <footer>
-        <p>The List  | 2026</p>
-        <button id="bundleToggle" class="admin-link" type="button">
-            Are you a creator? Submit a whole set →
-        </button>
-        <button id="adminToggle" class="admin-link" type="button">
-            View my submissions (local test)
-        </button>
+        <p>The List | 2026</p>
     </footer>
+
+
+    <!-- TOOLBOX (help icon, bottom-right) -->
+    <button id="toolboxToggle" class="toolbox-fab" type="button" title="Help & more">
+        ?
+    </button>
+
+    <div id="toolboxModal" class="toolbox-panel">
+
+        <div class="modal-header">
+            <h3>Help & more</h3>
+            <button id="closeToolbox" class="modal-close" type="button">✕</button>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>What the statuses mean</h4>
+
+            <div class="legend-item">
+                <span class="cc-status recognized">✓ recognized</span>
+                <p>In the database, with a working link.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status pending">⏳ pending</span>
+                <p>You submitted a link for this — awaiting validation.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status claimed">🔒 claimed</span>
+                <p>Already reported by someone else — awaiting validation.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status multiple">🔀 multiple matches</span>
+                <p>Several known candidates share this ID (likely an override) — pick yours.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status missing">⚠ link missing</span>
+                <p>The set is identified, but there's no link yet.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status unknown">? unknown</span>
+                <p>Not in the database at all yet.</p>
+            </div>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Are you a creator?</h4>
+            <p>Submit every item in one of your sets at once, instead of one by one.</p>
+            <button id="bundleToggle" class="secondary-button" type="button">
+                Submit a whole set
+            </button>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Suggest an improvement</h4>
+            <p class="toolbox-coming-soon">Coming soon.</p>
+        </div>
+
+        <div class="toolbox-section">
+            <button id="adminToggle" class="text-button" type="button">
+                View my submissions (local test)
+            </button>
+        </div>
+
+    </div>
 
 
     <!-- SUBMISSION MODAL -->
