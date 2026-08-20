@@ -195,6 +195,53 @@ let generatedItems = [];
 // possibly-wrong guess across different builds.
 let multipleSelections = {};
 
+// ------------------------------------------
+// TAG & FLAG (optional, per-generation only)
+// ------------------------------------------
+// Purely cosmetic — never touches the database. The on/off preference
+// is remembered (localStorage), but the actual ticked categories are
+// NOT: they reset every time a new list is generated, since categories
+// like "Early Access" or "Free" can go stale fast and re-checking is
+// safer than trusting an old guess.
+
+const TAG_FLAG_KEY = "cc_tagflag_enabled";
+const TAG_CATEGORIES = ["Early Access", "Free", "Permanently Paywalled", "CurseForge"];
+
+let tagFlagEnabled = localStorage.getItem(TAG_FLAG_KEY) === "true";
+let itemTags = {}; // { [key]: "Early Access" | "Free" | ... } — one flag max per key
+
+const tagFlagToggle = document.getElementById("tagFlagToggle");
+tagFlagToggle.setAttribute("aria-pressed", String(tagFlagEnabled));
+
+tagFlagToggle.addEventListener("click", () => {
+
+    tagFlagEnabled = !tagFlagEnabled;
+    tagFlagToggle.setAttribute("aria-pressed", String(tagFlagEnabled));
+    localStorage.setItem(TAG_FLAG_KEY, String(tagFlagEnabled));
+
+    if (generatedItems.length > 0) {
+        renderResults(generatedItems);
+    }
+});
+
+function tagFlagRowHTML(key) {
+
+    if (!tagFlagEnabled) {
+        return "";
+    }
+
+    const selected = itemTags[key];
+
+    const chips = TAG_CATEGORIES.map((category) => `
+        <label class="tag-chip">
+            <input type="radio" name="tagflag-${escapeHTML(key)}" data-tagkey="${escapeHTML(key)}" value="${escapeHTML(category)}" ${selected === category ? "checked" : ""}>
+            ${escapeHTML(category)}
+        </label>
+    `).join("");
+
+    return `<div class="tag-flag-row">${chips}</div>`;
+}
+
 
 // ==========================================
 // CHARACTER COUNTER
@@ -477,6 +524,7 @@ function generateList() {
     const text = ccInput.value.trim();
 
     multipleSelections = {};
+    itemTags = {};
 
     if (!text) {
 
@@ -536,6 +584,7 @@ function renderResults(items) {
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
+        const tagKey = `${group.creator}::${group.setName}`;
 
         element.innerHTML = `
             <div class="cc-item-row">
@@ -554,6 +603,8 @@ function renderResults(items) {
             }
 
             <span class="pending-note">Submission pending review</span>
+
+            ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -576,6 +627,7 @@ function renderResults(items) {
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
+        const tagKey = `${group.creator}::${group.setName}`;
 
         element.innerHTML = `
             <div class="cc-item-row">
@@ -592,6 +644,8 @@ function renderResults(items) {
                     ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
                     : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
             }
+
+            ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -613,6 +667,8 @@ function renderResults(items) {
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
+        const tagKey = `${group.creator}::${group.setName}`;
+
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">${escapeHTML(group.setName)}</span>
@@ -632,6 +688,8 @@ function renderResults(items) {
             >
                 + Submit a link
             </button>
+
+            ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -694,6 +752,10 @@ function renderResults(items) {
                 : `<span class="cc-link-invalid">⚠ Invalid link format</span>`;
         }
 
+        const tagRowHTML = currentSelection !== undefined
+            ? tagFlagRowHTML(group.instance)
+            : "";
+
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">${escapeHTML(formatCCName(group.items[0].name))}</span>
@@ -725,6 +787,8 @@ function renderResults(items) {
                     ? `<button class="propose-button" type="button" data-instance="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
                     : ""
             }
+
+            ${tagRowHTML}
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -887,7 +951,33 @@ async function copyResult() {
     const { pendingGroups, recognizedGroups, missingGroups, multipleGroups, claimedItems, unknownItems } =
         classifyAndGroup(generatedItems);
 
-    const multipleLines = multipleGroups.map((group) => {
+    const rawLines = [];
+
+    recognizedGroups.forEach((group) => {
+
+        const safeLink = sanitizeUrl(group.link);
+        const key = `${group.creator}::${group.setName}`;
+
+        const text = safeLink
+            ? `${group.setName} (${group.creator}) — [download here](${safeLink})`
+            : `${group.setName} (${group.creator}) — [link needed]`;
+
+        rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
+    });
+
+    pendingGroups.forEach((group) => {
+
+        const safeLink = sanitizeUrl(group.link);
+        const key = `${group.creator}::${group.setName}`;
+
+        const text = safeLink
+            ? `${group.setName} (${group.creator}) — [download here](${safeLink}) (pending validation)`
+            : `${group.setName} (${group.creator}) — [link needed] (pending validation)`;
+
+        rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
+    });
+
+    multipleGroups.forEach((group) => {
 
         const suggestedIndex = guessCandidateIndex(group.items[0], group.candidates);
         const explicitSelection = multipleSelections[group.instance];
@@ -898,46 +988,84 @@ async function copyResult() {
         const label = formatCCName(group.items[0].name);
 
         if (selection === undefined) {
-            return `${label} — [choose a match in the tool before copying]`;
+            rawLines.push({ text: `${label} — [choose a match in the tool before copying]`, category: undefined });
+            return;
         }
 
         if (selection === "none") {
-            return `${label} — [link needed]`;
+            rawLines.push({ text: `${label} — [link needed]`, category: undefined });
+            return;
         }
 
         const chosen = group.candidates[selection];
         const safeLink = sanitizeUrl(chosen.link);
-        return safeLink
+
+        const text = safeLink
             ? `${chosen.setName} (${chosen.creator}) — [download here](${safeLink})`
             : `${chosen.setName} (${chosen.creator}) — [link needed]`;
+
+        rawLines.push({ text, category: tagFlagEnabled ? itemTags[group.instance] : undefined });
     });
 
-    const lines = [
-        ...recognizedGroups.map((group) => {
-            const safeLink = sanitizeUrl(group.link);
-            return safeLink
-                ? `${group.setName} (${group.creator}) — [download here](${safeLink})`
-                : `${group.setName} (${group.creator}) — [link needed]`;
-        }),
-        ...pendingGroups.map((group) => {
-            const safeLink = sanitizeUrl(group.link);
-            return safeLink
-                ? `${group.setName} (${group.creator}) — [download here](${safeLink}) (pending validation)`
-                : `${group.setName} (${group.creator}) — [link needed] (pending validation)`;
-        }),
-        ...multipleLines,
-        ...missingGroups.map(
-            (group) => `${group.setName} (${group.creator}) — [link needed]`
-        ),
-        ...claimedItems.map(
-            (item) => `${formatCCName(item.name)} — [already reported, awaiting validation]`
-        ),
-        ...unknownItems.map(
-            (item) => `${formatCCName(item.name)} — [link needed]`
-        )
-    ];
+    missingGroups.forEach((group) => {
 
-    const text = lines.join("\n");
+        const key = `${group.creator}::${group.setName}`;
+
+        rawLines.push({
+            text: `${group.setName} (${group.creator}) — [link needed]`,
+            category: tagFlagEnabled ? itemTags[key] : undefined
+        });
+    });
+
+    claimedItems.forEach((item) => {
+        rawLines.push({
+            text: `${formatCCName(item.name)} — [already reported, awaiting validation]`,
+            category: undefined
+        });
+    });
+
+    unknownItems.forEach((item) => {
+        rawLines.push({ text: `${formatCCName(item.name)} — [link needed]`, category: undefined });
+    });
+
+    let text;
+
+    if (tagFlagEnabled) {
+
+        // Group by category, plain text headers (no emoji). Anything
+        // without a flag is appended at the end with no header at all —
+        // not even a placeholder like "(no flag)".
+        const grouped = {};
+        TAG_CATEGORIES.forEach((cat) => { grouped[cat] = []; });
+        const untagged = [];
+
+        rawLines.forEach(({ text: line, category }) => {
+
+            if (category && grouped[category]) {
+                grouped[category].push(line);
+            } else {
+                untagged.push(line);
+            }
+        });
+
+        const sections = [];
+
+        TAG_CATEGORIES.forEach((cat) => {
+            if (grouped[cat].length > 0) {
+                sections.push(`${cat}\n${grouped[cat].join("\n")}`);
+            }
+        });
+
+        if (untagged.length > 0) {
+            sections.push(untagged.join("\n"));
+        }
+
+        text = sections.join("\n\n");
+
+    } else {
+
+        text = rawLines.map((l) => l.text).join("\n");
+    }
 
     try {
 
@@ -1030,6 +1158,32 @@ result.addEventListener("change", (event) => {
         multipleSelections[instance] = value === "none" ? "none" : Number(value);
 
         renderResults(generatedItems);
+        return;
+    }
+
+    if (event.target.matches('input[type="radio"][data-tagkey]')) {
+
+        const key = event.target.dataset.tagkey;
+        itemTags[key] = event.target.value;
+    }
+});
+
+// Clicking an already-selected tag chip clears it — lets someone change
+// their mind back to "no flag" without needing to pick a different one.
+result.addEventListener("click", (event) => {
+
+    const input = event.target.closest('input[type="radio"][data-tagkey]');
+
+    if (!input) {
+        return;
+    }
+
+    const key = input.dataset.tagkey;
+
+    if (itemTags[key] === input.value) {
+
+        delete itemTags[key];
+        input.checked = false;
     }
 });
 
