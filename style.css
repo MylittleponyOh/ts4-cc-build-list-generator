@@ -720,11 +720,12 @@ button:disabled {
 
     padding: 3px 8px;
 
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: 999px;
 
+    background: white;
     font-size: 10px;
-    color: var(--text-soft);
+    color: var(--text);
 
     cursor: pointer;
 }
@@ -737,9 +738,9 @@ button:disabled {
 
 
 .tag-chip:has(input:checked) {
-    border-color: var(--text);
-    background: var(--surface-soft);
-    color: var(--text);
+    border-color: transparent;
+    background: var(--accent);
+    color: white;
     font-weight: 600;
 }
 
