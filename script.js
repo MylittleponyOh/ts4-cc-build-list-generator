@@ -20,6 +20,11 @@ async function loadDatabase() {
         const response = await fetch(DATABASE_URL);
         const rows = await response.json();
 
+        // Each Instance ID maps to an ARRAY of candidates, not a single
+        // entry — this is what lets "Multiple matches" work: if two rows
+        // share the same Instance ID (an override situation, where the
+        // ID is shared on purpose), both are kept instead of the second
+        // one silently overwriting the first.
         const index = {};
 
         rows.forEach((row) => {
@@ -30,11 +35,17 @@ async function loadDatabase() {
                 return;
             }
 
-            index[id] = {
+            const entry = {
                 creator: row.Creator || "",
                 setName: row.SetName || "",
                 link: row.Link || ""
             };
+
+            if (!index[id]) {
+                index[id] = [];
+            }
+
+            index[id].push(entry);
         });
 
         DATABASE_INDEX = index;
@@ -92,18 +103,37 @@ async function loadClaimed() {
 const claimedLoadPromise = loadClaimed();
 
 
-function lookupItem(item) {
+function lookupCandidates(item) {
 
     for (const instance of item.instances) {
 
-        const match = DATABASE_INDEX[instance.trim()];
+        const trimmed = instance.trim();
+        const candidates = DATABASE_INDEX[trimmed];
 
-        if (match) {
-            return match;
+        if (candidates && candidates.length) {
+            return { instance: trimmed, candidates };
         }
     }
 
     return null;
+}
+
+// Best-effort guess at which candidate matches, based on the creator
+// name that usually appears as the first segment of the pasted filename
+// (e.g. "Valia_Cozy_Cabin_Door" → "Valia"). Only ever used to PRE-SELECT
+// a suggestion — the user can always change it, never auto-applied.
+function guessCandidateIndex(item, candidates) {
+
+    const rawName = item.name.replace(/\.package$/i, "");
+    const guessedCreator = rawName.split("_")[0]?.trim().toLowerCase();
+
+    if (!guessedCreator) {
+        return -1;
+    }
+
+    return candidates.findIndex(
+        (c) => c.creator.trim().toLowerCase() === guessedCreator
+    );
 }
 
 
@@ -157,6 +187,13 @@ const characterCount = document.getElementById("characterCount");
 const toast = document.getElementById("toast");
 
 let generatedItems = [];
+
+// Which candidate the user picked for each ambiguous "Multiple matches"
+// Instance ID, e.g. { "0x...": 1 } or { "0x...": "none" }. Intentionally
+// NOT persisted anywhere — starts fresh every time a list is generated,
+// since re-choosing each time is safer than silently remembering a
+// possibly-wrong guess across different builds.
+let multipleSelections = {};
 
 
 // ==========================================
@@ -328,7 +365,8 @@ function classifyAndGroup(items) {
     const buckets = {
         pending: new Map(),
         recognized: new Map(),
-        missing: new Map()
+        missing: new Map(),
+        multiple: new Map()
     };
 
     const claimedItems = [];
@@ -336,25 +374,29 @@ function classifyAndGroup(items) {
 
     items.forEach((item) => {
 
-        const instance = (item.instances[0] || "").trim();
-        const dbMatch = lookupItem(item);
+        const lookup = lookupCandidates(item);
+        const instance = lookup ? lookup.instance : (item.instances[0] || "").trim();
+        const candidates = lookup ? lookup.candidates : [];
 
-        // A real database match with a link always wins — this is what
-        // makes a "pending" item flip back to "recognized" automatically
-        // once it's actually approved and copied into the Sheet, without
-        // needing to manually clear the local submission first.
-        if (dbMatch && dbMatch.link && dbMatch.link.trim()) {
+        // 1. An unambiguous, validated match with a link always wins —
+        // this is what makes a "pending" item flip back to "recognized"
+        // automatically once it's actually approved.
+        if (candidates.length === 1 && candidates[0].link && candidates[0].link.trim()) {
 
-            const key = `${dbMatch.creator}::${dbMatch.setName}`;
+            const match = candidates[0];
+            const key = `${match.creator}::${match.setName}`;
 
             if (!buckets.recognized.has(key)) {
-                buckets.recognized.set(key, { ...dbMatch, items: [] });
+                buckets.recognized.set(key, { ...match, items: [] });
             }
 
             buckets.recognized.get(key).items.push(item);
             return;
         }
 
+        // 2. The user's own submission, whatever the database currently
+        // says — this way, resolving an ambiguity via "submit a
+        // different link" isn't re-prompted every single time.
         const pending = pendingIndex[instance];
 
         if (pending) {
@@ -374,23 +416,35 @@ function classifyAndGroup(items) {
             return;
         }
 
-        // Someone else (a different browser) already submitted a link
-        // for this exact Instance ID. We don't show their unverified
-        // set/creator/link as fact, and we hide the propose button so
-        // it can't be requested twice — the item is just "claimed"
-        // until it's actually validated into the real database.
+        // 3. Several different candidates share this Instance ID
+        // (typically an override situation) — the tool can't know
+        // which one is really installed, so the person has to choose.
+        if (candidates.length > 1) {
+
+            if (!buckets.multiple.has(instance)) {
+                buckets.multiple.set(instance, { instance, candidates, items: [] });
+            }
+
+            buckets.multiple.get(instance).items.push(item);
+            return;
+        }
+
+        // 4. Someone else already submitted a link for this exact
+        // Instance ID (from the global Form responses Sheet).
         if (CLAIMED_SET.has(instance)) {
             claimedItems.push(item);
             return;
         }
 
-        if (dbMatch) {
+        // 5. Exactly one candidate, but no link yet.
+        if (candidates.length === 1) {
 
-            const key = `${dbMatch.creator}::${dbMatch.setName}`;
+            const match = candidates[0];
+            const key = `${match.creator}::${match.setName}`;
 
             if (!buckets.missing.has(key)) {
                 buckets.missing.set(key, {
-                    ...dbMatch,
+                    ...match,
                     items: [],
                     firstInstance: instance
                 });
@@ -407,6 +461,7 @@ function classifyAndGroup(items) {
         pendingGroups: Array.from(buckets.pending.values()),
         recognizedGroups: Array.from(buckets.recognized.values()),
         missingGroups: Array.from(buckets.missing.values()),
+        multipleGroups: Array.from(buckets.multiple.values()),
         claimedItems,
         unknownItems
     };
@@ -420,6 +475,8 @@ function classifyAndGroup(items) {
 function generateList() {
 
     const text = ccInput.value.trim();
+
+    multipleSelections = {};
 
     if (!text) {
 
@@ -464,7 +521,7 @@ function renderResults(items) {
     const list = document.createElement("div");
     list.className = "result-list";
 
-    const { pendingGroups, recognizedGroups, missingGroups, claimedItems, unknownItems } =
+    const { pendingGroups, recognizedGroups, missingGroups, multipleGroups, claimedItems, unknownItems } =
         classifyAndGroup(items);
 
     // PENDING GROUPS (user's own submission, awaiting validation)
@@ -478,6 +535,8 @@ function renderResults(items) {
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
+        const safeLink = sanitizeUrl(group.link);
+
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">${escapeHTML(group.setName)}</span>
@@ -488,9 +547,11 @@ function renderResults(items) {
                 by <span class="cc-creator">${escapeHTML(group.creator)}</span>
             </div>
 
-            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
-                🔗 View the link
-            </a>
+            ${
+                safeLink
+                    ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
+                    : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+            }
 
             <span class="pending-note">Submission pending review</span>
 
@@ -514,6 +575,8 @@ function renderResults(items) {
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
+        const safeLink = sanitizeUrl(group.link);
+
         element.innerHTML = `
             <div class="cc-item-row">
                 <span class="cc-name">${escapeHTML(group.setName)}</span>
@@ -524,9 +587,11 @@ function renderResults(items) {
                 by <span class="cc-creator">${escapeHTML(group.creator)}</span>
             </div>
 
-            <a href="${escapeHTML(group.link)}" target="_blank" rel="noopener noreferrer" class="cc-link">
-                🔗 View the link
-            </a>
+            ${
+                safeLink
+                    ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
+                    : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+            }
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -567,6 +632,99 @@ function renderResults(items) {
             >
                 + Submit a link
             </button>
+
+            <details class="cc-details">
+                <summary>View the ${group.items.length} items</summary>
+                <ul>${itemsListHTML}</ul>
+            </details>
+        `;
+
+        list.appendChild(element);
+    });
+
+    // MULTIPLE MATCHES (same Instance ID, several known candidates —
+    // typical of overrides. The person picks which one they actually have.)
+
+    multipleGroups.forEach((group) => {
+
+        const element = document.createElement("div");
+        element.className = "cc-item multiple";
+
+        const suggestedIndex = guessCandidateIndex(group.items[0], group.candidates);
+        const currentSelection = multipleSelections[group.instance];
+
+        const itemsListHTML = group.items
+            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .join("");
+
+        const optionsHTML = group.candidates
+            .map((candidate, index) => {
+
+                const isChecked =
+                    currentSelection === index ||
+                    (currentSelection === undefined && suggestedIndex === index);
+
+                return `
+                    <label class="multi-option">
+                        <input
+                            type="radio"
+                            name="multi-${escapeHTML(group.instance)}"
+                            data-instance="${escapeHTML(group.instance)}"
+                            value="${index}"
+                            ${isChecked ? "checked" : ""}
+                        >
+                        <span>${escapeHTML(candidate.setName)} — <strong>${escapeHTML(candidate.creator)}</strong></span>
+                        ${index === suggestedIndex ? '<span class="multi-suggested">suggested</span>' : ""}
+                    </label>
+                `;
+            })
+            .join("");
+
+        const noneChecked = currentSelection === "none";
+
+        let resolvedLinkHTML = "";
+
+        if (currentSelection !== undefined && currentSelection !== "none") {
+
+            const chosen = group.candidates[currentSelection];
+            const safeLink = sanitizeUrl(chosen.link);
+
+            resolvedLinkHTML = safeLink
+                ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
+                : `<span class="cc-link-invalid">⚠ Invalid link format</span>`;
+        }
+
+        element.innerHTML = `
+            <div class="cc-item-row">
+                <span class="cc-name">${escapeHTML(formatCCName(group.items[0].name))}</span>
+                <span class="cc-status multiple">🔀 multiple matches (${group.items.length})</span>
+            </div>
+
+            <div class="cc-meta">
+                This Instance ID matches more than one known set — pick the one you actually have:
+            </div>
+
+            <div class="multi-options">
+                ${optionsHTML}
+                <label class="multi-option">
+                    <input
+                        type="radio"
+                        name="multi-${escapeHTML(group.instance)}"
+                        data-instance="${escapeHTML(group.instance)}"
+                        value="none"
+                        ${noneChecked ? "checked" : ""}
+                    >
+                    <span>None of these — submit a different link</span>
+                </label>
+            </div>
+
+            ${resolvedLinkHTML}
+
+            ${
+                noneChecked
+                    ? `<button class="propose-button" type="button" data-instance="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
+                    : ""
+            }
 
             <details class="cc-details">
                 <summary>View the ${group.items.length} items</summary>
@@ -726,17 +884,48 @@ async function copyResult() {
         return;
     }
 
-    const { pendingGroups, recognizedGroups, missingGroups, claimedItems, unknownItems } =
+    const { pendingGroups, recognizedGroups, missingGroups, multipleGroups, claimedItems, unknownItems } =
         classifyAndGroup(generatedItems);
 
+    const multipleLines = multipleGroups.map((group) => {
+
+        const suggestedIndex = guessCandidateIndex(group.items[0], group.candidates);
+        const explicitSelection = multipleSelections[group.instance];
+        const selection = explicitSelection !== undefined
+            ? explicitSelection
+            : (suggestedIndex >= 0 ? suggestedIndex : undefined);
+
+        const label = formatCCName(group.items[0].name);
+
+        if (selection === undefined) {
+            return `${label} — [choose a match in the tool before copying]`;
+        }
+
+        if (selection === "none") {
+            return `${label} — [link needed]`;
+        }
+
+        const chosen = group.candidates[selection];
+        const safeLink = sanitizeUrl(chosen.link);
+        return safeLink
+            ? `${chosen.setName} (${chosen.creator}) — [download here](${safeLink})`
+            : `${chosen.setName} (${chosen.creator}) — [link needed]`;
+    });
+
     const lines = [
-        ...recognizedGroups.map(
-            (group) => `${group.setName} (${group.creator}) — [download here](${group.link})`
-        ),
-        ...pendingGroups.map(
-            (group) =>
-                `${group.setName} (${group.creator}) — [download here](${group.link}) (pending validation)`
-        ),
+        ...recognizedGroups.map((group) => {
+            const safeLink = sanitizeUrl(group.link);
+            return safeLink
+                ? `${group.setName} (${group.creator}) — [download here](${safeLink})`
+                : `${group.setName} (${group.creator}) — [link needed]`;
+        }),
+        ...pendingGroups.map((group) => {
+            const safeLink = sanitizeUrl(group.link);
+            return safeLink
+                ? `${group.setName} (${group.creator}) — [download here](${safeLink}) (pending validation)`
+                : `${group.setName} (${group.creator}) — [link needed] (pending validation)`;
+        }),
+        ...multipleLines,
         ...missingGroups.map(
             (group) => `${group.setName} (${group.creator}) — [link needed]`
         ),
@@ -828,6 +1017,19 @@ closeModalButton.addEventListener("click", closeSubmitModal);
 submitModal.addEventListener("click", (event) => {
     if (event.target === submitModal) {
         closeSubmitModal();
+    }
+});
+
+result.addEventListener("change", (event) => {
+
+    if (event.target.matches('input[type="radio"][data-instance]')) {
+
+        const instance = event.target.dataset.instance;
+        const value = event.target.value;
+
+        multipleSelections[instance] = value === "none" ? "none" : Number(value);
+
+        renderResults(generatedItems);
     }
 });
 
@@ -1033,7 +1235,11 @@ function renderAdminList() {
     }
 
     adminList.innerHTML = submissions
-        .map((sub, index) => `
+        .map((sub, index) => {
+
+            const safeLink = sanitizeUrl(sub.link);
+
+            return `
             <div class="admin-entry">
                 <div class="admin-entry-header">
                     <strong>${escapeHTML(sub.itemName)}</strong>
@@ -1041,14 +1247,19 @@ function renderAdminList() {
                 </div>
                 <div class="admin-entry-body">
                     Set: ${escapeHTML(sub.setName)} · Creator: ${escapeHTML(sub.creator)}<br>
-                    Link: <a href="${escapeHTML(sub.link)}" target="_blank" rel="noopener noreferrer">${escapeHTML(sub.link)}</a>
+                    Link: ${
+                        safeLink
+                            ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer">${escapeHTML(safeLink)}</a>`
+                            : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+                    }
                     ${sub.note ? `<br>Note: ${escapeHTML(sub.note)}` : ""}
                 </div>
                 <button class="admin-copy" data-index="${index}" type="button">
                     ⧉ Copy as JSON
                 </button>
             </div>
-        `)
+        `;
+        })
         .join("");
 }
 
@@ -1153,6 +1364,22 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// Only http:// and https:// are allowed as clickable links. This blocks
+// javascript:, data:, vbscript: and similar schemes that would otherwise
+// execute code when someone clicks "View the link" — escapeHTML() alone
+// does NOT catch this, since these payloads don't need any HTML special
+// characters to work.
+function sanitizeUrl(url) {
+
+    const trimmed = (url || "").trim();
+
+    if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+    }
+
+    return "";
 }
 
 
