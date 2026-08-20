@@ -732,8 +732,10 @@ button:disabled {
 
 
 .tag-chip input {
-    width: 10px;
-    height: 10px;
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
 }
 
 
