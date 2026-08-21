@@ -44,6 +44,8 @@
                     Straight from S4TI, no cleanup needed.
                 </p>
 
+                <p class="card-hint">In S4TI: select your CC → Right-click → Info → Copy</p>
+
                 <textarea
                     id="ccInput"
                     placeholder="[YourCreatorName_YourSetName_Item1]
@@ -124,7 +126,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 <div>
                     <h4>No duplicates</h4>
                     <p>
-                        Used the same CC five times? It only shows up once.
+                        Used the same CC five times? It only shows up once, grouped under its set once it's identified.
                     </p>
                 </div>
             </div>
@@ -180,7 +182,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
             <div class="legend-item">
                 <span class="cc-status recognized">✓ recognized</span>
-                <p>In the database, with a verified working link.</p>
+                <p>In the database, with a working link.</p>
             </div>
             <div class="legend-item">
                 <span class="cc-status pending">⏳ pending</span>
@@ -246,7 +248,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <label>
                     Creator *
-                    <input type="text" id="fieldCreator" required placeholder="Ex: Valia">
+                    <input type="text" id="fieldCreator" required placeholder="Ex: Valia" list="creatorsList" autocomplete="off">
                 </label>
 
                 <label>
@@ -300,7 +302,7 @@ Instance: 0x00000000!0x..."></textarea>
 
                 <label>
                     Creator *
-                    <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh">
+                    <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh" list="creatorsList" autocomplete="off">
                 </label>
 
                 <label>
@@ -355,6 +357,11 @@ Instance: 0x00000000!0x..."></textarea>
     <div id="toast" class="toast">
         List copied!
     </div>
+
+
+    <!-- Shared autocomplete list, filled from known creators in the
+         database. Both submission forms point to this same list. -->
+    <datalist id="creatorsList"></datalist>
 
 
     <script src="script.js"></script>
