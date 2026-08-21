@@ -423,6 +423,26 @@ function instanceCount(items) {
     return items.reduce((sum, item) => sum + item.instances.length, 0);
 }
 
+// Flattens every Instance ID across a set of items into one list —
+// needed so a "Submit a link" click covers a whole merged package
+// (which can carry several instances under one entry), not just the
+// first one S4TI happened to list.
+function allInstances(items) {
+
+    const result = [];
+
+    items.forEach((item) => {
+        item.instances.forEach((rawInstance) => {
+            const trimmed = rawInstance.trim();
+            if (trimmed) {
+                result.push(trimmed);
+            }
+        });
+    });
+
+    return result;
+}
+
 
 // ==========================================
 // CLASSIFY + GROUP ITEMS
@@ -736,7 +756,7 @@ function renderResults(items) {
             <button
                 class="propose-button"
                 type="button"
-                data-instance="${escapeHTML(group.firstInstance)}"
+                data-instances="${escapeHTML(allInstances(group.items).join(","))}"
                 data-setname="${escapeHTML(group.setName)}"
                 data-creator="${escapeHTML(group.creator)}"
             >
@@ -838,7 +858,7 @@ function renderResults(items) {
 
             ${
                 noneChecked
-                    ? `<button class="propose-button" type="button" data-instance="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
+                    ? `<button class="propose-button" type="button" data-instances="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
                     : ""
             }
 
@@ -881,7 +901,7 @@ function renderResults(items) {
         const element = document.createElement("div");
         element.className = "cc-item unknown";
 
-        const firstInstance = item.instances[0] || "";
+        const instances = item.instances.map((i) => i.trim()).filter(Boolean);
 
         element.innerHTML = `
             <div class="cc-item-row">
@@ -894,7 +914,7 @@ function renderResults(items) {
             <button
                 class="propose-button"
                 type="button"
-                data-instance="${escapeHTML(firstInstance)}"
+                data-instances="${escapeHTML(instances.join(","))}"
                 data-setname=""
                 data-creator=""
             >
@@ -1245,12 +1265,15 @@ const adminList = document.getElementById("adminList");
 const clearAllButton = document.getElementById("clearAllSubmissions");
 
 let currentProposedItemName = "";
-let currentProposedInstance = "";
+let currentProposedInstances = [];
 
-function openSubmitModal(itemName, instanceId, setNameGuess, creatorGuess) {
+function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess) {
 
     currentProposedItemName = itemName;
-    currentProposedInstance = instanceId || "";
+    currentProposedInstances = (instancesCsv || "")
+        .split(",")
+        .map((i) => i.trim())
+        .filter(Boolean);
 
     modalItemName.textContent = `For item: ${itemName}`;
 
@@ -1326,7 +1349,7 @@ result.addEventListener("click", (event) => {
 
         openSubmitModal(
             name,
-            button.dataset.instance,
+            button.dataset.instances,
             button.dataset.setname,
             button.dataset.creator
         );
@@ -1371,21 +1394,43 @@ submitForm.addEventListener("submit", async (event) => {
 
     const submitBtn = submitForm.querySelector(".modal-submit");
     submitBtn.disabled = true;
-    submitBtn.textContent = "Sending...";
 
-    const submission = {
-        itemName: currentProposedItemName,
-        instance: currentProposedInstance,
-        setName: document.getElementById("fieldSetName").value.trim(),
-        creator: document.getElementById("fieldCreator").value.trim(),
-        link: document.getElementById("fieldLink").value.trim(),
-        submittedAt: new Date().toISOString()
-    };
+    const setName = document.getElementById("fieldSetName").value.trim();
+    const creator = document.getElementById("fieldCreator").value.trim();
+    const link = document.getElementById("fieldLink").value.trim();
 
-    await submitToGoogleForm(submission);
+    // A merged package can carry several Instance IDs under one entry.
+    // Submitting registers ALL of them, sharing the same set/creator/
+    // link — otherwise only the first instance would ever become
+    // recognized, leaving the rest of the merged file stuck as
+    // "unknown" forever even after this exact submission is approved.
+    const instances = currentProposedInstances.length > 0
+        ? currentProposedInstances
+        : [""];
 
     const submissions = getSubmissions();
-    submissions.push(submission);
+
+    for (let i = 0; i < instances.length; i++) {
+
+        if (instances.length > 1) {
+            submitBtn.textContent = `Sending ${i + 1} / ${instances.length}...`;
+        } else {
+            submitBtn.textContent = "Sending...";
+        }
+
+        const submission = {
+            itemName: currentProposedItemName,
+            instance: instances[i],
+            setName: setName,
+            creator: creator,
+            link: link,
+            submittedAt: new Date().toISOString()
+        };
+
+        await submitToGoogleForm(submission);
+        submissions.push(submission);
+    }
+
     saveSubmissions(submissions);
 
     closeSubmitModal();
