@@ -1012,7 +1012,7 @@ function showEmptyState() {
         <div class="empty-state">
             <img src="logo.png" alt="" class="empty-icon">
             <h4>Nothing here yet</h4>
-            <p>Paste your export on the left and hit "Create the list".</p>
+            <p>Paste your export on the left and hit "<span class="nowrap">Create the list</span>".</p>
         </div>
     `;
 }
