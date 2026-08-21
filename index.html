@@ -40,21 +40,17 @@
                     </button>
                 </div>
 
-                <p class="card-description">
-                    Straight from S4TI, no cleanup needed.
-                </p>
-
-                <p class="card-hint">In S4TI: select your CC → Right-click → Info → Copy</p>
+                <p class="card-hint">In S4TI: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
 
                 <textarea
                     id="ccInput"
-                    placeholder="[YourCreatorName_YourSetName_Item1]
+                    placeholder="[CreatorName_SetName_Item]
 Instance: 0x00000000!0x0000000000000001.0x00000000
 
-[AnotherCreator_AnotherSet_Item2]
+[CreatorName_SetName_Item]
 Instance: 0x00000000!0x0000000000000002.0x00000000
 
-[ThirdCreator_ThirdSet_Item3]
+[CreatorName_SetName_Item]
 Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <div class="input-footer">
@@ -87,7 +83,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         </button>
                         <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false" title="Select several unknown items and link them together">
                             <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
-                            Bundle & Link
+                            Link & Bundle
                         </button>
                         <span id="itemCount" class="count-badge">
                             0 CC
@@ -104,7 +100,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         <img src="logo.png" alt="" class="empty-icon">
                         <h4>Nothing here yet</h4>
                         <p>
-                            Paste your export on the left and hit "Create the list".
+                            Paste your export on the left and hit "<span class="nowrap">Create the list</span>".
                         </p>
                     </div>
 
@@ -135,9 +131,9 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             <div class="info-card">
                 <span class="info-icon"></span>
                 <div>
-                    <h4>No duplicates</h4>
+                    <h4>Smart Match</h4>
                     <p>
-                        Used the same CC five times? It only shows up once, grouped under its set once it's identified.
+                        Recognized items are grouped by set. A pile of unknowns from the same set? Group them yourself with Bundle & Link.
                     </p>
                 </div>
             </div>
