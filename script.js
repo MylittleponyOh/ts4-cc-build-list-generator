@@ -1095,12 +1095,16 @@ generateButton.addEventListener("click", async () => {
 const COPY_FORMAT_KEY = "cc_copy_format";
 let copyFormat = localStorage.getItem(COPY_FORMAT_KEY) || "markdown";
 
-const copyFormatSelect = document.getElementById("copyFormatSelect");
-copyFormatSelect.value = copyFormat;
+const copyFormatRadios = document.querySelectorAll('input[name="copyFormat"]');
 
-copyFormatSelect.addEventListener("change", () => {
-    copyFormat = copyFormatSelect.value;
-    localStorage.setItem(COPY_FORMAT_KEY, copyFormat);
+copyFormatRadios.forEach((radio) => {
+
+    radio.checked = radio.value === copyFormat;
+
+    radio.addEventListener("change", () => {
+        copyFormat = radio.value;
+        localStorage.setItem(COPY_FORMAT_KEY, copyFormat);
+    });
 });
 
 // Builds one credit line according to the currently selected format.
@@ -1363,12 +1367,6 @@ function closeSubmitModal() {
 
 closeModalButton.addEventListener("click", closeSubmitModal);
 
-submitModal.addEventListener("click", (event) => {
-    if (event.target === submitModal) {
-        closeSubmitModal();
-    }
-});
-
 result.addEventListener("change", (event) => {
 
     if (event.target.matches('input[type="checkbox"][data-bundle-instance]')) {
@@ -1612,6 +1610,42 @@ document.addEventListener("click", (event) => {
 
 
 // ==========================================
+// SETTINGS (preferences icon, top-right)
+// ==========================================
+
+const settingsToggle = document.getElementById("settingsToggle");
+const settingsPanel = document.getElementById("settingsPanel");
+const closeSettingsButton = document.getElementById("closeSettings");
+
+function openSettingsPanel() {
+    settingsPanel.classList.add("show");
+}
+
+function closeSettingsPanel() {
+    settingsPanel.classList.remove("show");
+}
+
+settingsToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    settingsPanel.classList.contains("show") ? closeSettingsPanel() : openSettingsPanel();
+});
+
+closeSettingsButton.addEventListener("click", closeSettingsPanel);
+
+document.addEventListener("click", (event) => {
+
+    const isOutside =
+        settingsPanel.classList.contains("show") &&
+        !settingsPanel.contains(event.target) &&
+        event.target !== settingsToggle;
+
+    if (isOutside) {
+        closeSettingsPanel();
+    }
+});
+
+
+// ==========================================
 // BUNDLE SUBMISSION (whole set at once, for creators)
 // ==========================================
 
@@ -1634,12 +1668,6 @@ function closeBundleModal() {
 
 bundleToggle.addEventListener("click", openBundleModal);
 closeBundleButton.addEventListener("click", closeBundleModal);
-
-bundleModal.addEventListener("click", (event) => {
-    if (event.target === bundleModal) {
-        closeBundleModal();
-    }
-});
 
 bundleForm.addEventListener("submit", async (event) => {
 
