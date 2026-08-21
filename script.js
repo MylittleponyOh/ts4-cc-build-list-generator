@@ -9,7 +9,7 @@
 // source of truth. Expected columns: InstanceID | SetName | Creator | Link
 
 const DATABASE_URL =
-    "https://opensheet.elk.sh/1nTZL5uIfGKlp3ZUzgA3ApBmJuiVS45LVCHuGLVHw4X8/Feuille%201";
+    "https://opensheet.elk.sh/1GOsgK3OpenLMWzv9UxEmK7yRn2Rts6KIiFKZmF6LWvQ/Feuille%201";
 
 let DATABASE_INDEX = {};
 
