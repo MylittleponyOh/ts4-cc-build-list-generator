@@ -252,6 +252,30 @@ tagFlagToggle.addEventListener("click", () => {
     }
 });
 
+// ------------------------------------------
+// LINK & BUNDLE (unknown items only, this session only)
+// ------------------------------------------
+// Lets a builder select several "unknown" items and submit them
+// together under one set/creator/link, instead of one at a time.
+// Unlike Tag & Flag, this is NOT remembered between visits — it's a
+// working mode for the current list, not a lasting preference.
+
+let bundleModeEnabled = false;
+let bundleSelection = {}; // { [instance]: itemName }
+
+const bundleModeToggle = document.getElementById("bundleModeToggle");
+
+bundleModeToggle.addEventListener("click", () => {
+
+    bundleModeEnabled = !bundleModeEnabled;
+    bundleModeToggle.setAttribute("aria-pressed", String(bundleModeEnabled));
+    bundleSelection = {};
+
+    if (generatedItems.length > 0) {
+        renderResults(generatedItems);
+    }
+});
+
 function tagFlagRowHTML(key) {
 
     if (!tagFlagEnabled) {
@@ -595,6 +619,9 @@ function generateList() {
 
     multipleSelections = {};
     itemTags = {};
+    bundleSelection = {};
+    bundleModeEnabled = false;
+    bundleModeToggle.setAttribute("aria-pressed", "false");
 
     if (!text) {
 
@@ -892,31 +919,80 @@ function renderResults(items) {
 
     // UNKNOWN ITEMS (not in the database at all)
 
-    unknownItems.forEach((item) => {
+    const sortedUnknown = bundleModeEnabled
+        ? [...unknownItems].sort((a, b) =>
+            formatCCName(a.name).localeCompare(formatCCName(b.name), undefined, { sensitivity: "base" })
+        )
+        : unknownItems;
+
+    if (bundleModeEnabled && sortedUnknown.length > 0) {
+
+        const selectedCount = Object.keys(bundleSelection).length;
+
+        const bar = document.createElement("div");
+        bar.className = "bundle-bar";
+
+        bar.innerHTML = `
+            <span>${selectedCount} item${selectedCount === 1 ? "" : "s"} selected</span>
+            <button id="bundleLinkButton" class="bundle-link-button" type="button" ${selectedCount === 0 ? "disabled" : ""}>
+                Link selected
+            </button>
+        `;
+
+        list.appendChild(bar);
+    }
+
+    sortedUnknown.forEach((item) => {
 
         const element = document.createElement("div");
         element.className = "cc-item unknown";
 
         const instances = representativeInstances([item]);
+        const representative = instances[0] || "";
+        const displayName = formatCCName(item.name);
 
-        element.innerHTML = `
-            <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(formatCCName(item.name))}</span>
-                <span class="cc-status unknown">? unknown</span>
-            </div>
+        if (bundleModeEnabled) {
 
-            <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
+            const isChecked = !!bundleSelection[representative];
 
-            <button
-                class="propose-button"
-                type="button"
-                data-instances="${escapeHTML(instances.join(","))}"
-                data-setname=""
-                data-creator=""
-            >
-                + Submit a link
-            </button>
-        `;
+            element.innerHTML = `
+                <div class="cc-item-row">
+                    <label class="bundle-checkbox">
+                        <input
+                            type="checkbox"
+                            data-bundle-instance="${escapeHTML(representative)}"
+                            data-bundle-name="${escapeHTML(displayName)}"
+                            ${isChecked ? "checked" : ""}
+                        >
+                        <span class="cc-name">${escapeHTML(displayName)}</span>
+                    </label>
+                    <span class="cc-status unknown">? unknown</span>
+                </div>
+
+                <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
+            `;
+
+        } else {
+
+            element.innerHTML = `
+                <div class="cc-item-row">
+                    <span class="cc-name">${escapeHTML(displayName)}</span>
+                    <span class="cc-status unknown">? unknown</span>
+                </div>
+
+                <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
+
+                <button
+                    class="propose-button"
+                    type="button"
+                    data-instances="${escapeHTML(instances.join(","))}"
+                    data-setname=""
+                    data-creator=""
+                >
+                    + Submit a link
+                </button>
+            `;
+        }
 
         list.appendChild(element);
     });
@@ -1295,6 +1371,34 @@ submitModal.addEventListener("click", (event) => {
 
 result.addEventListener("change", (event) => {
 
+    if (event.target.matches('input[type="checkbox"][data-bundle-instance]')) {
+
+        const instance = event.target.dataset.bundleInstance;
+        const name = event.target.dataset.bundleName;
+
+        if (event.target.checked) {
+            bundleSelection[instance] = name;
+        } else {
+            delete bundleSelection[instance];
+        }
+
+        const count = Object.keys(bundleSelection).length;
+        const bar = document.querySelector(".bundle-bar");
+
+        if (bar) {
+
+            bar.querySelector("span").textContent = `${count} item${count === 1 ? "" : "s"} selected`;
+
+            const linkBtn = document.getElementById("bundleLinkButton");
+
+            if (linkBtn) {
+                linkBtn.disabled = count === 0;
+            }
+        }
+
+        return;
+    }
+
     if (event.target.matches('input[type="radio"][data-instance]')) {
 
         const instance = event.target.dataset.instance;
@@ -1333,6 +1437,29 @@ result.addEventListener("click", (event) => {
 });
 
 result.addEventListener("click", (event) => {
+
+    if (event.target.id === "bundleLinkButton") {
+
+        const instances = Object.keys(bundleSelection);
+        const names = Object.values(bundleSelection);
+
+        if (instances.length === 0) {
+            return;
+        }
+
+        const summary = names.length <= 3
+            ? names.join(", ")
+            : `${names.slice(0, 3).join(", ")}, +${names.length - 3} more`;
+
+        openSubmitModal(
+            `${instances.length} items, ${summary}`,
+            instances.join(","),
+            "",
+            ""
+        );
+
+        return;
+    }
 
     if (event.target.classList.contains("propose-button")) {
 
@@ -1434,7 +1561,11 @@ submitForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit suggestion";
 
-    showToast("Suggestion sent, thank you! 🦄");
+    showToast("Suggestion sent, thank you!");
+
+    // Clear the bundle checkboxes for the next batch, but leave Link &
+    // Bundle mode itself on — the builder likely has more sets to link.
+    bundleSelection = {};
 
     // Re-render immediately so the item now shows as "pending"
     // instead of the propose button, without needing a new paste.
@@ -1523,21 +1654,48 @@ bundleForm.addEventListener("submit", async (event) => {
 
     const items = parseS4TI(exportText);
 
+    // Make sure we're checking against fresh data, not whatever was
+    // loaded when the page first opened.
+    await Promise.all([loadDatabase(), loadClaimed()]);
+
     const submissionsToSend = [];
+    let skippedCount = 0;
 
     items.forEach((item) => {
-        item.instances.forEach((instance) => {
-            if (instance.trim()) {
-                submissionsToSend.push({
-                    itemName: formatCCName(item.name),
-                    instance: instance.trim()
-                });
-            }
+
+        const instance = representativeInstances([item])[0];
+
+        if (!instance) {
+            return;
+        }
+
+        // Already fully recognized (has a working link), or already
+        // claimed by someone else's submission — nothing useful to add
+        // by re-submitting it, so skip it rather than creating a
+        // redundant row in the pending Sheet.
+        const existing = DATABASE_INDEX[instance];
+        const alreadyRecognized = existing && existing.some((c) => c.link && c.link.trim());
+        const alreadyClaimed = CLAIMED_SET.has(instance);
+
+        if (alreadyRecognized || alreadyClaimed) {
+            skippedCount += 1;
+            return;
+        }
+
+        submissionsToSend.push({
+            itemName: formatCCName(item.name),
+            instance
         });
     });
 
     if (submissionsToSend.length === 0) {
-        showToast("No Instance ID found in that export.");
+
+        showToast(
+            skippedCount > 0
+                ? "Everything in this export is already known or claimed. Nothing to submit."
+                : "No Instance ID found in that export."
+        );
+
         return;
     }
 
@@ -1586,7 +1744,11 @@ bundleForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit the whole set";
 
-    showToast(`Submitted ${submissionsToSend.length} items for review 🦄`);
+    showToast(
+        skippedCount > 0
+            ? `Submitted ${submissionsToSend.length} items (${skippedCount} already known, skipped)`
+            : `Submitted ${submissionsToSend.length} items for review`
+    );
 
     if (generatedItems.length > 0) {
         renderResults(generatedItems);
