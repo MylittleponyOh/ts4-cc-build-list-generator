@@ -50,11 +50,39 @@ async function loadDatabase() {
 
         DATABASE_INDEX = index;
 
+        populateCreatorsDatalist();
+
     } catch (error) {
 
         console.error("Could not load the database:", error);
         DATABASE_INDEX = {};
     }
+}
+
+// Known creators, pulled straight from the live database — powers the
+// autocomplete on the submission forms. Still just a suggestion: typing
+// a name that isn't listed yet is always allowed, for new creators.
+function populateCreatorsDatalist() {
+
+    const names = new Set();
+
+    Object.values(DATABASE_INDEX).forEach((candidates) => {
+        candidates.forEach((candidate) => {
+            if (candidate.creator && candidate.creator.trim()) {
+                names.add(candidate.creator.trim());
+            }
+        });
+    });
+
+    const sorted = Array.from(names).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+
+    const datalist = document.getElementById("creatorsList");
+
+    datalist.innerHTML = sorted
+        .map((name) => `<option value="${escapeHTML(name)}"></option>`)
+        .join("");
 }
 
 const databaseLoadPromise = loadDatabase();
@@ -387,6 +415,14 @@ function formatCCName(name) {
         .trim();
 }
 
+// A "file" (one [bracket] entry from S4TI) can carry more than one
+// Instance ID — merged packages and multi-part objects are the common
+// cases. This counts real instances, not just distinct file entries.
+function instanceCount(items) {
+
+    return items.reduce((sum, item) => sum + item.instances.length, 0);
+}
+
 
 // ==========================================
 // CLASSIFY + GROUP ITEMS
@@ -422,8 +458,8 @@ function classifyAndGroup(items) {
     items.forEach((item) => {
 
         const lookup = lookupCandidates(item);
-        const instance = lookup ? lookup.instance : (item.instances[0] || "").trim();
         const candidates = lookup ? lookup.candidates : [];
+        const primaryInstance = lookup ? lookup.instance : (item.instances[0] || "").trim();
 
         // 1. An unambiguous, validated match with a link always wins —
         // this is what makes a "pending" item flip back to "recognized"
@@ -444,7 +480,22 @@ function classifyAndGroup(items) {
         // 2. The user's own submission, whatever the database currently
         // says — this way, resolving an ambiguity via "submit a
         // different link" isn't re-prompted every single time.
-        const pending = pendingIndex[instance];
+        //
+        // IMPORTANT: a merged package can list several Instance IDs
+        // under one entry in S4TI. A pending submission might be keyed
+        // to any one of them, not necessarily the first — so every
+        // instance the item carries has to be checked, not just one.
+        let pending = null;
+
+        for (const rawInstance of item.instances) {
+
+            const trimmed = rawInstance.trim();
+
+            if (pendingIndex[trimmed]) {
+                pending = pendingIndex[trimmed];
+                break;
+            }
+        }
 
         if (pending) {
 
@@ -468,17 +519,20 @@ function classifyAndGroup(items) {
         // which one is really installed, so the person has to choose.
         if (candidates.length > 1) {
 
-            if (!buckets.multiple.has(instance)) {
-                buckets.multiple.set(instance, { instance, candidates, items: [] });
+            if (!buckets.multiple.has(primaryInstance)) {
+                buckets.multiple.set(primaryInstance, { instance: primaryInstance, candidates, items: [] });
             }
 
-            buckets.multiple.get(instance).items.push(item);
+            buckets.multiple.get(primaryInstance).items.push(item);
             return;
         }
 
         // 4. Someone else already submitted a link for this exact
-        // Instance ID (from the global Form responses Sheet).
-        if (CLAIMED_SET.has(instance)) {
+        // Instance ID (from the global Form responses Sheet). Same
+        // multi-instance reasoning as the pending check above.
+        const isClaimed = item.instances.some((rawInstance) => CLAIMED_SET.has(rawInstance.trim()));
+
+        if (isClaimed) {
             claimedItems.push(item);
             return;
         }
@@ -493,7 +547,7 @@ function classifyAndGroup(items) {
                 buckets.missing.set(key, {
                     ...match,
                     items: [],
-                    firstInstance: instance
+                    firstInstance: primaryInstance
                 });
             }
 
@@ -607,7 +661,7 @@ function renderResults(items) {
             ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
-                <summary>View the ${group.items.length} items</summary>
+                <summary>View the ${instanceCount(group.items)} items</summary>
                 <ul>${itemsListHTML}</ul>
             </details>
         `;
@@ -648,7 +702,7 @@ function renderResults(items) {
             ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
-                <summary>View the ${group.items.length} items</summary>
+                <summary>View the ${instanceCount(group.items)} items</summary>
                 <ul>${itemsListHTML}</ul>
             </details>
         `;
@@ -692,7 +746,7 @@ function renderResults(items) {
             ${tagFlagRowHTML(tagKey)}
 
             <details class="cc-details">
-                <summary>View the ${group.items.length} items</summary>
+                <summary>View the ${instanceCount(group.items)} items</summary>
                 <ul>${itemsListHTML}</ul>
             </details>
         `;
@@ -791,7 +845,7 @@ function renderResults(items) {
             ${tagRowHTML}
 
             <details class="cc-details">
-                <summary>View the ${group.items.length} items</summary>
+                <summary>View the ${instanceCount(group.items)} items</summary>
                 <ul>${itemsListHTML}</ul>
             </details>
         `;
