@@ -1,1497 +1,377 @@
-:root {
-    --background: #ffffff;
-    --surface: #ffffff;
-    --surface-soft: #f6f6f6;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A CC credit list tool for The Sims 4, paste your S4TI export, get links.">
+    <title>The List</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="logo">
+            <img src="logo.png" alt="The List" class="logo-mark">
+            <h2>Build. List. Share.</h2>
+        </div>
+    </header>
+
+
+    <main class="container">
+
+
+        <section class="generator-grid">
+
+            <!-- INPUT -->
+            <div class="card input-card">
 
-    --text: #0d0d0d;
-    --text-soft: #6b6b6b;
-    --text-faint: #a3a3a3;
-
-    --accent: #0d0d0d;
-    --accent-dark: #000000;
-
-    --border: #e6e6e6;
-    --border-strong: #d0d0d0;
-
-    --radius: 3px;
-    --radius-small: 2px;
-}
-
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-
-body {
-    min-height: 100vh;
-
-    background: var(--background);
-
-    color: var(--text);
-
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-    line-height: 1.5;
-}
-
-
-/* HEADER */
-
-.site-header {
-    padding: 26px 5%;
-}
-
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-
-    max-width: 1200px;
-    margin: auto;
-}
-
-
-.logo-mark {
-    height: 100px;
-    width: auto;
-
-    display: block;
-}
-
-
-.logo h2 {
-    font-family: inherit;
-
-    font-size: clamp(20px, 2.6vw, 30px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-
-    color: var(--text);
-}
-
-
-/* MAIN */
-
-.container {
-    width: min(1200px, 90%);
-    margin: auto;
-}
-
-
-.hero {
-    padding: 34px 0 30px;
-    text-align: center;
-}
-
-
-.eyebrow {
-    display: inline-block;
-
-    margin-bottom: 10px;
-
-    color: var(--text-faint);
-
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-}
-
-
-.hero h2 {
-    margin-bottom: 10px;
-
-    font-family: inherit;
-
-    font-size: clamp(24px, 3.4vw, 34px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-
-.hero p {
-    max-width: 520px;
-    margin: auto;
-
-    color: var(--text-soft);
-
-    font-size: 13.5px;
-}
-
-
-/* GRID */
-
-.generator-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-
-    margin-top: 28px;
-}
-
-
-/* CARD */
-
-.card {
-    display: flex;
-    flex-direction: column;
-
-    min-height: 540px;
-
-    padding: 22px;
-
-    background: var(--surface);
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-}
-
-
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-bottom: 8px;
-}
-
-
-.card-header > div {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-
-.step {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 40px;
-    height: 40px;
-
-    flex-shrink: 0;
-}
-
-
-.step-mark {
-    position: absolute;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    display: block;
-}
-
-
-.step-number {
-    position: relative;
-    z-index: 1;
-
-    font-size: 14px;
-    font-weight: 800;
-    color: white;
-
-    line-height: 1;
-}
-
-
-.card h3 {
-    font-size: 14.5px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-}
-
-
-.card-description {
-    margin-bottom: 16px;
-
-    color: var(--text-soft);
-    font-size: 12.5px;
-}
-
-
-.card-hint {
-    margin: -10px 0 14px;
-
-    color: var(--text-faint);
-    font-size: 10.5px;
-    font-style: italic;
-}
-
-
-/* INPUT */
-
-textarea {
-    width: 100%;
-    flex: 1;
-
-    min-height: 340px;
-
-    padding: 14px;
-
-    resize: vertical;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-
-    color: var(--text);
-
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        monospace;
-
-    font-size: 11.5px;
-
-    line-height: 1.7;
-
-    outline: none;
-
-    transition: border-color 0.15s;
-}
-
-
-textarea:focus {
-    border-color: var(--text);
-}
-
-
-textarea::placeholder {
-    color: var(--text-faint);
-}
-
-
-/* BUTTONS */
-
-.input-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-top: 16px;
-}
-
-
-.output-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-
-    gap: 8px;
-
-    margin-top: 16px;
-}
-
-
-.copy-format-select {
-    padding: 8px 10px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-    color: var(--text-soft);
-
-    font-family: inherit;
-    font-size: 11px;
-
-    cursor: pointer;
-}
-
-
-.copy-format-select:hover {
-    border-color: var(--border-strong);
-}
-
-
-#characterCount {
-    color: var(--text-faint);
-    font-size: 11px;
-}
-
-
-button {
-    border: 0;
-    cursor: pointer;
-
-    font-family: inherit;
-
-    transition: transform 0.12s ease, opacity 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
-}
-
-
-button:hover:not(:disabled) {
-    transform: translateY(-1px);
-}
-
-
-button:active:not(:disabled) {
-    transform: translateY(0);
-    opacity: 0.85;
-}
-
-
-.primary-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-
-    padding: 11px 18px;
-
-    border-radius: 2px 16px 2px 2px;
-
-    background: white;
-    border: 1px solid var(--border-strong);
-    color: var(--text);
-
-    font-size: 12.5px;
-    font-weight: 600;
-}
-
-
-.primary-button:not(:disabled) {
-    background: var(--accent);
-    border-color: transparent;
-    color: white;
-}
-
-
-.primary-button:not(:disabled):hover {
-    background: var(--accent-dark);
-    box-shadow: 0 3px 10px rgba(13, 13, 13, 0.22);
-}
-
-
-.primary-button:disabled {
-    opacity: 1;
-}
-
-
-.text-button {
-    background: transparent;
-    color: var(--text-soft);
-
-    font-size: 11.5px;
-}
-
-
-.text-button:hover {
-    color: var(--text);
-}
-
-
-.secondary-button {
-    width: 100%;
-
-    padding: 11px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 2px 16px 2px 2px;
-
-    background: white;
-    color: var(--text);
-
-    font-size: 12.5px;
-    font-weight: 600;
-}
-
-
-.secondary-button:not(:disabled) {
-    background: var(--accent);
-    border-color: transparent;
-    color: white;
-}
-
-
-.secondary-button:hover:not(:disabled) {
-    background: var(--accent-dark);
-    box-shadow: 0 2px 6px rgba(13, 13, 13, 0.15);
-}
-
-
-.primary-button:disabled,
-.secondary-button:disabled {
-    opacity: 1;
-}
-
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
-}
-
-
-/* COUNT */
-
-.count-badge {
-    padding: 4px 9px;
-
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-
-    color: var(--text-soft);
-
-    font-size: 10.5px;
-}
-
-
-.card-header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-
-.refresh-button {
-    padding: 4px 6px;
-}
-
-
-.tag-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 4px 8px 4px 4px;
-
-    background: transparent;
-    color: var(--text-soft);
-
-    font-size: 10.5px;
-    font-weight: 600;
-
-    border-radius: var(--radius-small);
-}
-
-
-.tag-toggle:hover {
-    color: var(--text);
-}
-
-
-.tag-toggle-track {
-    position: relative;
-
-    width: 28px;
-    height: 16px;
-
-    border-radius: 999px;
-
-    background: var(--border-strong);
-
-    transition: background 0.15s ease;
-}
-
-
-.tag-toggle-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-
-    width: 12px;
-    height: 12px;
-
-    border-radius: 50%;
-
-    background: white;
-
-    transition: transform 0.15s ease;
-}
-
-
-.tag-toggle[aria-pressed="true"] .tag-toggle-track {
-    background: var(--accent);
-}
-
-
-.tag-toggle[aria-pressed="true"] .tag-toggle-thumb {
-    transform: translateX(12px);
-}
-
-
-/* RESULT */
-
-.result-container {
-    flex: 1;
-
-    overflow-y: auto;
-
-    min-height: 350px;
-    max-height: 430px;
-
-    padding-right: 4px;
-}
-
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    height: 100%;
-    min-height: 350px;
-
-    text-align: center;
-}
-
-
-.empty-icon {
-    width: 44px;
-    height: 44px;
-
-    margin-bottom: 14px;
-
-    object-fit: contain;
-}
-
-
-.empty-state h4 {
-    margin-bottom: 4px;
-
-    font-size: 13.5px;
-}
-
-
-.empty-state p {
-    max-width: 260px;
-
-    color: var(--text-soft);
-
-    font-size: 11.5px;
-}
-
-
-/* RESULT ITEM */
-
-.result-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-
-.cc-item {
-    padding: 12px 14px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: var(--surface);
-}
-
-
-.cc-name {
-    display: block;
-
-    color: var(--text);
-
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        monospace;
-
-    font-size: 11.5px;
-
-    overflow-wrap: anywhere;
-}
-
-
-.cc-number {
-    display: block;
-
-    margin-top: 4px;
-
-    color: var(--text-faint);
-
-    font-size: 10px;
-}
-
-
-/* RECOGNIZED / PENDING / MISSING / UNKNOWN ITEM STATES */
-/* Color is used only here — functional signal, not decoration. */
-
-.cc-item-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 10px;
-}
-
-
-.cc-status {
-    flex-shrink: 0;
-
-    padding: 3px 8px;
-
-    border-radius: var(--radius-small);
-
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
-
-.cc-status.recognized {
-    background: #e1f0e2;
-    color: #2c6b32;
-}
-
-
-.cc-status.pending {
-    background: #e5eaf5;
-    color: #3a4a78;
-}
-
-
-.cc-status.missing {
-    background: #f7ead0;
-    color: #91641e;
-}
-
-
-.cc-status.unknown {
-    background: var(--surface-soft);
-    color: var(--text-soft);
-    border: 1px solid var(--border);
-}
-
-
-.cc-status.claimed {
-    background: #e9e2f2;
-    color: #5a3d80;
-}
-
-
-.cc-item.claimed {
-    border-color: #d9caea;
-}
-
-
-.cc-status.multiple {
-    background: #fbe4e6;
-    color: #a13b45;
-}
-
-
-.cc-item.multiple {
-    border-color: #f3c9cd;
-}
-
-
-.multi-options {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    margin-top: 8px;
-}
-
-
-.multi-option {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-
-    font-size: 11.5px;
-    color: var(--text);
-
-    cursor: pointer;
-}
-
-
-.multi-option input[type="radio"] {
-    flex-shrink: 0;
-    accent-color: var(--text);
-}
-
-
-.multi-suggested {
-    padding: 1px 6px;
-
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-
-    color: var(--text-faint);
-
-    font-size: 9.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-
-.tag-flag-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-
-    margin-top: 8px;
-}
-
-
-.tag-chip {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    padding: 3px 8px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-
-    background: white;
-    font-size: 10px;
-    color: var(--text);
-
-    cursor: pointer;
-}
-
-
-.tag-chip input {
-    position: absolute;
-    width: 0;
-    height: 0;
-    opacity: 0;
-}
-
-
-.tag-chip:has(input:checked) {
-    border-color: transparent;
-    background: var(--accent);
-    color: white;
-    font-weight: 600;
-}
-
-
-.cc-item.recognized {
-    border-color: #c8e1c9;
-}
-
-
-.cc-item.pending {
-    border-color: #c9d3ea;
-}
-
-
-.cc-item.missing-link {
-    border-color: #ecd8a8;
-}
-
-
-.cc-meta {
-    margin-top: 5px;
-
-    color: var(--text-soft);
-    font-size: 11px;
-}
-
-
-.cc-meta-unknown {
-    font-style: italic;
-    color: var(--text-faint);
-}
-
-
-.cc-creator {
-    font-weight: 700;
-    color: var(--text);
-}
-
-
-.cc-link {
-    display: inline-block;
-
-    margin-top: 7px;
-
-    color: var(--text);
-
-    font-size: 11px;
-    font-weight: 600;
-
-    text-decoration: none;
-    border-bottom: 1px solid var(--text);
-}
-
-
-.cc-link:hover {
-    opacity: 0.7;
-}
-
-
-.cc-link-invalid {
-    display: inline-block;
-
-    margin-top: 7px;
-
-    color: #a4432f;
-
-    font-size: 11px;
-    font-weight: 600;
-}
-
-
-.propose-button {
-    margin-top: 7px;
-
-    padding: 5px 11px;
-
-    border: 1px dashed var(--border-strong);
-    border-radius: var(--radius-small);
-
-    background: transparent;
-    color: var(--text-soft);
-
-    font-size: 10.5px;
-    font-weight: 600;
-}
-
-
-.propose-button:hover {
-    border-color: var(--text);
-    color: var(--text);
-}
-
-
-.pending-note {
-    margin-top: 7px;
-
-    padding: 5px 9px;
-
-    border-radius: var(--radius-small);
-
-    background: #e5eaf5;
-    color: #3a4a78;
-
-    font-size: 10.5px;
-    font-weight: 600;
-
-    display: inline-block;
-}
-
-
-/* COLLAPSIBLE ITEM LIST */
-
-.cc-details {
-    margin-top: 7px;
-}
-
-
-.cc-details summary {
-    cursor: pointer;
-
-    color: var(--text-faint);
-
-    font-size: 10.5px;
-    font-weight: 600;
-
-    list-style: none;
-}
-
-
-.cc-details summary::-webkit-details-marker {
-    display: none;
-}
-
-
-.cc-details summary::before {
-    content: "▸ ";
-}
-
-
-.cc-details[open] summary::before {
-    content: "▾ ";
-}
-
-
-.cc-details ul {
-    margin-top: 5px;
-    padding-left: 16px;
-
-    color: var(--text-soft);
-    font-size: 10.5px;
-    line-height: 1.8;
-}
-
-
-/* TOOLBOX FAB */
-
-.toolbox-fab {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-
-    width: 48px;
-    height: 48px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border: none;
-    border-radius: 2px 16px 2px 2px;
-
-    background: var(--accent);
-    color: white;
-
-    font-size: 19px;
-    font-weight: 800;
-
-    cursor: pointer;
-
-    z-index: 90;
-
-    box-shadow: 0 4px 14px rgba(13, 13, 13, 0.25);
-
-    transition: background 0.15s, color 0.15s, transform 0.12s ease;
-}
-
-
-.toolbox-fab:hover {
-    background: white;
-    color: var(--text);
-    transform: translateY(-1px);
-}
-
-
-/* TOOLBOX PANEL — a small anchored panel near the FAB, not a fullscreen
-   modal. No dark backdrop; closes on outside click. */
-
-.toolbox-panel {
-    position: fixed;
-    right: 24px;
-    bottom: 82px;
-
-    width: min(340px, calc(100vw - 48px));
-    max-height: min(70vh, 560px);
-
-    overflow-y: auto;
-
-    padding: 20px;
-
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 10px 30px rgba(13, 13, 13, 0.18);
-
-    z-index: 95;
-
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-    transform-origin: bottom right;
-    pointer-events: none;
-
-    transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-
-.toolbox-panel.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-}
-
-
-.toolbox-section {
-    margin-top: 18px;
-    padding-top: 18px;
-
-    border-top: 1px solid var(--border);
-}
-
-
-.toolbox-section:first-of-type {
-    margin-top: 8px;
-    padding-top: 0;
-    border-top: none;
-}
-
-
-.toolbox-section h4 {
-    font-size: 12.5px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
-
-.toolbox-section p {
-    color: var(--text-soft);
-    font-size: 11.5px;
-    margin-bottom: 10px;
-}
-
-
-.toolbox-coming-soon {
-    font-style: italic;
-    color: var(--text-faint);
-    margin-bottom: 0;
-}
-
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    margin-bottom: 8px;
-}
-
-
-.legend-item .cc-status {
-    flex-shrink: 0;
-    width: 118px;
-    text-align: center;
-}
-
-
-.legend-item p {
-    margin-bottom: 0;
-    font-size: 11px;
-}
-
-
-/* MODAL */
-
-.modal-overlay {
-    display: none;
-
-    position: fixed;
-    inset: 0;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    background: rgba(13, 13, 13, 0.5);
-
-    z-index: 100;
-}
-
-.modal-overlay.show {
-    display: flex;
-}
-
-.modal-box {
-    width: 100%;
-    max-width: 420px;
-    max-height: 85vh;
-
-    overflow-y: auto;
-
-    padding: 22px;
-
-    background: var(--surface);
-
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-bottom: 6px;
-}
-
-.modal-header h3 {
-    font-size: 15.5px;
-    font-weight: 700;
-}
-
-.modal-close {
-    background: transparent;
-    color: var(--text-soft);
-    font-size: 15px;
-    padding: 4px 8px;
-}
-
-.modal-close:hover {
-    color: var(--text);
-}
-
-.modal-item-name {
-    margin-bottom: 14px;
-
-    color: var(--text-soft);
-    font-size: 11.5px;
-    font-style: italic;
-
-    word-break: break-word;
-}
-
-#submitForm,
-#bundleForm {
-    display: flex;
-    flex-direction: column;
-    gap: 13px;
-}
-
-#submitForm label,
-#bundleForm label {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-#submitForm input,
-#submitForm textarea,
-#bundleForm input,
-#bundleForm textarea {
-    padding: 9px 11px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 400;
-    color: var(--text);
-
-    outline: none;
-}
-
-#bundleExport {
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        monospace;
-    font-size: 11px;
-}
-
-#submitForm input:focus,
-#submitForm textarea:focus,
-#bundleForm input:focus,
-#bundleForm textarea:focus {
-    border-color: var(--text);
-}
-
-#submitForm textarea {
-    min-height: 65px;
-    resize: vertical;
-}
-
-#bundleExport {
-    min-height: 135px;
-    resize: vertical;
-}
-
-.modal-disclaimer {
-    color: var(--text-faint);
-    font-size: 10.5px;
-    line-height: 1.5;
-}
-
-.modal-submit {
-    justify-content: center;
-    width: 100%;
-}
-
-
-.progress-bar {
-    display: none;
-
-    margin-top: 10px;
-
-    width: 100%;
-    height: 6px;
-
-    border-radius: 999px;
-
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-
-    overflow: hidden;
-}
-
-
-.progress-bar.show {
-    display: block;
-}
-
-
-.progress-bar-fill {
-    height: 100%;
-    width: 0%;
-
-    background: var(--accent);
-
-    transition: width 0.2s ease;
-}
-
-
-/* ADMIN PANEL */
-
-.admin-box {
-    max-width: 480px;
-}
-
-.admin-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    margin-top: 12px;
-}
-
-.admin-clear-all {
-    margin-top: 8px;
-
-    color: #a4432f;
-    font-weight: 600;
-}
-
-.admin-clear-all:hover {
-    color: #7d3222;
-}
-
-.admin-empty {
-    color: var(--text-faint);
-    font-size: 11.5px;
-    text-align: center;
-    padding: 18px 0;
-}
-
-.admin-entry {
-    padding: 12px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: var(--surface-soft);
-}
-
-.admin-entry-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    font-size: 12px;
-    margin-bottom: 5px;
-}
-
-.admin-delete {
-    background: transparent;
-    color: var(--text-faint);
-    font-size: 11px;
-    padding: 2px 6px;
-}
-
-.admin-delete:hover {
-    color: var(--text);
-}
-
-.admin-entry-body {
-    color: var(--text-soft);
-    font-size: 11px;
-    line-height: 1.6;
-
-    word-break: break-word;
-}
-
-.admin-entry-body a {
-    color: var(--text);
-}
-
-.admin-copy {
-    margin-top: 7px;
-
-    padding: 5px 9px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-
-    background: white;
-    color: var(--text);
-
-    font-size: 10.5px;
-    font-weight: 600;
-}
-
-.admin-copy:hover {
-    border-color: var(--text);
-}
-
-
-/* INFO */
-
-.info-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-
-    gap: 14px;
-
-    margin: 28px 0 56px;
-}
-
-
-.info-card {
-    display: flex;
-    gap: 12px;
-
-    padding: 18px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius-small);
-}
-
-
-.info-icon {
-    flex-shrink: 0;
-
-    font-size: 15px;
-    color: var(--text-faint);
-}
-
-
-.info-card h4 {
-    margin-bottom: 3px;
-
-    font-size: 12.5px;
-    font-weight: 700;
-}
-
-
-.info-card p {
-    color: var(--text-soft);
-
-    font-size: 11px;
-}
-
-
-/* FOOTER */
-
-footer {
-    padding: 20px;
-
-    border-top: 1px solid var(--border);
-
-    color: var(--text-faint);
-
-    text-align: center;
-
-    font-size: 10.5px;
-}
-
-
-/* TOAST */
-
-.toast {
-    position: fixed;
-
-    right: 25px;
-    bottom: 86px;
-
-    padding: 11px 16px;
-
-    border-radius: var(--radius-small);
-
-    background: var(--text);
-    color: white;
-
-    font-size: 11.5px;
-
-    opacity: 0;
-    transform: translateY(10px);
-
-    pointer-events: none;
-
-    transition: opacity 0.25s, transform 0.25s;
-}
-
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-
-/* MOBILE */
-
-@media (max-width: 800px) {
-
-    .generator-grid {
-        grid-template-columns: 1fr;
-    }
-
-
-    .card {
-        min-height: 480px;
-    }
-
-
-    .info-section {
-        grid-template-columns: 1fr;
-    }
-
-
-    .hero {
-        padding-top: 36px;
-    }
-
-
-    .input-footer {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-
-    .primary-button {
-        justify-content: center;
-    }
-
-}
-
-
-@media (max-width: 500px) {
-
-    .site-header {
-        padding: 16px;
-    }
-
-
-    .container {
-        width: 92%;
-    }
-
-
-    .card {
-        padding: 16px;
-    }
-
-
-    .hero h2 {
-        font-size: 24px;
-    }
-
-}
+                <div class="card-header">
+                    <div>
+                        <span class="step">
+                            <img src="mark.png" alt="" class="step-mark">
+                            <span class="step-number">01</span>
+                        </span>
+                        <h3>Your S4TI Export</h3>
+                    </div>
+                    <button id="clearButton" class="text-button">
+                        Clear
+                    </button>
+                </div>
+
+                <p class="card-description">
+                    Straight from S4TI, no cleanup needed.
+                </p>
+
+                <p class="card-hint">In S4TI: select your CC → Right-click → Info → Copy</p>
+
+                <textarea
+                    id="ccInput"
+                    placeholder="[YourCreatorName_YourSetName_Item1]
+Instance: 0x00000000!0x0000000000000001.0x00000000
+
+[AnotherCreator_AnotherSet_Item2]
+Instance: 0x00000000!0x0000000000000002.0x00000000
+
+[ThirdCreator_ThirdSet_Item3]
+Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
+
+                <div class="input-footer">
+                    <span id="characterCount">0 characters</span>
+
+                    <button id="generateButton" class="primary-button">
+                        Create the list
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- OUTPUT -->
+            <div class="card output-card">
+
+                <div class="card-header">
+                    <div>
+                        <span class="step">
+                            <img src="mark.png" alt="" class="step-mark">
+                            <span class="step-number">02</span>
+                        </span>
+                        <h3>Your CC List</h3>
+                    </div>
+
+                    <div class="card-header-right">
+                        <button id="tagFlagToggle" class="tag-toggle" type="button" aria-pressed="false" title="Show tag options on each result">
+                            <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
+                            Tag & Flag
+                        </button>
+                        <span id="itemCount" class="count-badge">
+                            0 CC
+                        </span>
+                        <button id="refreshButton" class="text-button refresh-button" type="button" title="Re-check the database">
+                            ⟳ Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div id="result" class="result-container">
+
+                    <div class="empty-state">
+                        <img src="logo.png" alt="" class="empty-icon">
+                        <h4>Nothing here yet</h4>
+                        <p>
+                            Paste your export on the left and hit "Create the list".
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="output-footer">
+
+                    <select id="copyFormatSelect" class="copy-format-select" title="Copied list format">
+                        <option value="markdown">Markdown, name (creator)</option>
+                        <option value="name-link">Markdown, name linked</option>
+                        <option value="plain">Plain text, visible link</option>
+                        <option value="creators-list">Set list + creators recap</option>
+                    </select>
+
+                    <button id="copyButton" class="secondary-button" disabled>
+                        ⧉ Copy the list
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="info-section">
+
+            <div class="info-card">
+                <span class="info-icon"></span>
+                <div>
+                    <h4>No duplicates</h4>
+                    <p>
+                        Used the same CC five times? It only shows up once, grouped under its set once it's identified.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="info-icon"></span>
+                <div>
+                    <h4>You spot it, we add it</h4>
+                    <p>
+                        Missing a set, link, or creator? Submit it and we'll add it after a quick check.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <span class="info-icon"></span>
+                <div>
+                    <h4>Tag & Flag</h4>
+                    <p>
+                        One toggle, zero obligation.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        <p>The List | 2026</p>
+    </footer>
+
+
+    <!-- TOOLBOX (help icon, bottom-right) -->
+    <button id="toolboxToggle" class="toolbox-fab" type="button" title="Help & more">
+        ?
+    </button>
+
+    <div id="toolboxModal" class="toolbox-panel">
+
+        <div class="modal-header">
+            <h3>Help & more</h3>
+            <button id="closeToolbox" class="modal-close" type="button">✕</button>
+        </div>
+
+        <div class="toolbox-section">
+            <p>Paste your S4TI export, get a credit list with links.</p>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>What the statuses mean</h4>
+
+            <div class="legend-item">
+                <span class="cc-status recognized">✓ recognized</span>
+                <p>In the database, with a working link.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status pending">⏳ pending</span>
+                <p>You submitted a link for this, awaiting validation.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status claimed">🔒 claimed</span>
+                <p>Already reported by someone else, awaiting validation.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status multiple">🔀 multiple matches</span>
+                <p>Several known candidates share this ID (likely an override), pick yours.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status missing">⚠ link missing</span>
+                <p>The set is identified, but there's no link yet.</p>
+            </div>
+            <div class="legend-item">
+                <span class="cc-status unknown">? unknown</span>
+                <p>Not in the database at all yet.</p>
+            </div>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Are you a creator?</h4>
+            <p>Submit every item in one of your sets at once, instead of one by one.</p>
+            <button id="bundleToggle" class="secondary-button" type="button">
+                Submit a whole set
+            </button>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Suggest an improvement</h4>
+            <p class="toolbox-coming-soon">Coming soon.</p>
+        </div>
+
+        <div class="toolbox-section">
+            <button id="adminToggle" class="text-button" type="button">
+                View my submissions (local test)
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- SUBMISSION MODAL -->
+    <div id="submitModal" class="modal-overlay">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <h3>Submit missing info</h3>
+                <button id="closeModal" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-item-name" id="modalItemName"></p>
+
+            <form id="submitForm">
+
+                <label>
+                    Set Name *
+                    <input type="text" id="fieldSetName" required placeholder="Ex: Cozy Cabin">
+                </label>
+
+                <label>
+                    Creator *
+                    <input type="text" id="fieldCreator" required placeholder="Ex: Valia" list="creatorsList" autocomplete="off">
+                </label>
+
+                <label>
+                    Download Link *
+                    <input type="url" id="fieldLink" required placeholder="https://...">
+                </label>
+
+                <p class="modal-disclaimer">
+                    This suggestion will be submitted for validation before being added to the public database.
+                </p>
+
+                <button type="submit" class="primary-button modal-submit">
+                    Submit suggestion
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- BUNDLE SUBMISSION MODAL (for creators submitting a whole set at once) -->
+    <div id="bundleModal" class="modal-overlay">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <h3>Submit a whole set</h3>
+                <button id="closeBundle" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-item-name">
+                Is your CC part of this list already? Paste your own S4TI export
+                for the set, add one link, and we'll register every item in it at once.
+            </p>
+
+            <form id="bundleForm">
+
+                <label>
+                    Your S4TI export for this set *
+                    <textarea id="bundleExport" required placeholder="[YourName_SetName_Item1]
+Instance: 0x00000000!0x...
+
+[YourName_SetName_Item2]
+Instance: 0x00000000!0x..."></textarea>
+                </label>
+
+                <label>
+                    Set Name *
+                    <input type="text" id="bundleSetName" required placeholder="Ex: Nocturne">
+                </label>
+
+                <label>
+                    Creator *
+                    <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh" list="creatorsList" autocomplete="off">
+                </label>
+
+                <label>
+                    Download Link *
+                    <input type="url" id="bundleLink" required placeholder="https://...">
+                </label>
+
+                <p class="modal-disclaimer">
+                    Every item found in your export will be submitted for validation
+                    under this same set and link.
+                </p>
+
+                <button type="submit" class="primary-button modal-submit">
+                    Submit the whole set
+                </button>
+
+                <div id="bundleProgress" class="progress-bar">
+                    <div id="bundleProgressFill" class="progress-bar-fill"></div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- ADMIN PANEL (local test only) -->
+    <div id="adminPanel" class="modal-overlay">
+        <div class="modal-box admin-box">
+
+            <div class="modal-header">
+                <h3>Pending submissions (local)</h3>
+                <button id="closeAdmin" class="modal-close" type="button">✕</button>
+            </div>
+
+            <p class="modal-disclaimer">
+                These submissions are stored only in this browser, not yet
+                synced across users. Use "Copy" to manually add them to the
+                database for now.
+            </p>
+
+            <button id="clearAllSubmissions" class="text-button admin-clear-all" type="button">
+                Clear all
+            </button>
+
+            <div id="adminList" class="admin-list"></div>
+
+        </div>
+    </div>
+
+
+    <div id="toast" class="toast">
+        List copied!
+    </div>
+
+
+    <!-- Shared autocomplete list, filled from known creators in the
+         database. Both submission forms point to this same list. -->
+    <datalist id="creatorsList"></datalist>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
