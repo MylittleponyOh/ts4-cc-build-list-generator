@@ -278,8 +278,7 @@ textarea::placeholder {
 
 /* BUTTONS */
 
-.input-footer,
-.output-footer {
+.input-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -287,6 +286,38 @@ textarea::placeholder {
     gap: 15px;
 
     margin-top: 16px;
+}
+
+
+.output-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 8px;
+
+    margin-top: 16px;
+}
+
+
+.copy-format-select {
+    padding: 8px 10px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+
+    background: var(--surface-soft);
+    color: var(--text-soft);
+
+    font-family: inherit;
+    font-size: 11px;
+
+    cursor: pointer;
+}
+
+
+.copy-format-select:hover {
+    border-color: var(--border-strong);
 }
 
 
