@@ -77,14 +77,6 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                     </div>
 
                     <div class="card-header-right">
-                        <button id="tagFlagToggle" class="tag-toggle" type="button" aria-pressed="false" title="Show tag options on each result">
-                            <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
-                            Tag & Flag
-                        </button>
-                        <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false" title="Select several unknown items and link them together">
-                            <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
-                            Bundle & Link
-                        </button>
                         <span id="itemCount" class="count-badge">
                             0 CC
                         </span>
@@ -107,13 +99,6 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 </div>
 
                 <div class="output-footer">
-
-                    <select id="copyFormatSelect" class="copy-format-select" title="Copied list format">
-                        <option value="markdown">Markdown, name (creator)</option>
-                        <option value="name-link">Markdown, name linked</option>
-                        <option value="plain">Plain text, visible link</option>
-                        <option value="creators-list">Set list + creators recap</option>
-                    </select>
 
                     <button id="copyButton" class="secondary-button" disabled>
                         ⧉ Copy the list
@@ -166,6 +151,67 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
     <footer>
         <p>The List | 2026</p>
     </footer>
+
+
+    <!-- SETTINGS (preferences icon, top-right) -->
+    <button id="settingsToggle" class="settings-fab" type="button" title="Preferences">
+        ⋯
+    </button>
+
+    <div id="settingsPanel" class="settings-panel">
+
+        <div class="modal-header">
+            <h3>Preferences</h3>
+            <button id="closeSettings" class="modal-close" type="button">✕</button>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Copied list format</h4>
+            <p class="toolbox-hint">Hover a style to preview it.</p>
+
+            <div class="format-options">
+                <label class="format-option">
+                    <input type="radio" name="copyFormat" value="markdown" checked>
+                    <span class="format-name">Markdown, name (creator)</span>
+                    <span class="format-example">Vedette (MylittleponyOh), [download here](link)</span>
+                </label>
+                <label class="format-option">
+                    <input type="radio" name="copyFormat" value="name-link">
+                    <span class="format-name">Markdown, name linked</span>
+                    <span class="format-example">MylittleponyOh **[Vedette](link)**</span>
+                </label>
+                <label class="format-option">
+                    <input type="radio" name="copyFormat" value="plain">
+                    <span class="format-name">Plain text, visible link</span>
+                    <span class="format-example">Vedette by MylittleponyOh: link</span>
+                </label>
+                <label class="format-option">
+                    <input type="radio" name="copyFormat" value="creators-list">
+                    <span class="format-name">Set list + creators recap</span>
+                    <span class="format-example">Vedette [download](link) — Creators section at the end</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Tag & Flag</h4>
+            <p>Add an optional category to each result.</p>
+            <button id="tagFlagToggle" class="tag-toggle" type="button" aria-pressed="false">
+                <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
+                Tag & Flag
+            </button>
+        </div>
+
+        <div class="toolbox-section">
+            <h4>Bundle & Link</h4>
+            <p>Select several unknown items and submit them together.</p>
+            <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false">
+                <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
+                Bundle & Link
+            </button>
+        </div>
+
+    </div>
 
 
     <!-- TOOLBOX (help icon, bottom-right) -->
