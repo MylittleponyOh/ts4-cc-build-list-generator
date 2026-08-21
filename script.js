@@ -253,7 +253,7 @@ tagFlagToggle.addEventListener("click", () => {
 });
 
 // ------------------------------------------
-// LINK & BUNDLE (unknown items only, this session only)
+// BUNDLE & LINK (unknown items only, this session only)
 // ------------------------------------------
 // Lets a builder select several "unknown" items and submit them
 // together under one set/creator/link, instead of one at a time.
