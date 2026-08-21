@@ -996,6 +996,53 @@ generateButton.addEventListener("click", async () => {
 // COPY RESULT
 // ==========================================
 
+// ------------------------------------------
+// COPY FORMAT (persisted preference)
+// ------------------------------------------
+
+const COPY_FORMAT_KEY = "cc_copy_format";
+let copyFormat = localStorage.getItem(COPY_FORMAT_KEY) || "markdown";
+
+const copyFormatSelect = document.getElementById("copyFormatSelect");
+copyFormatSelect.value = copyFormat;
+
+copyFormatSelect.addEventListener("change", () => {
+    copyFormat = copyFormatSelect.value;
+    localStorage.setItem(COPY_FORMAT_KEY, copyFormat);
+});
+
+// Builds one credit line according to the currently selected format.
+// `link` should already be sanitized (or falsy if none/invalid).
+function buildCreditLine(setName, creator, link, suffix = "") {
+
+    if (!link) {
+
+        switch (copyFormat) {
+            case "name-link":
+                return `${creator} **${setName}** (link needed)${suffix}`;
+            case "plain":
+                return `${setName} by ${creator}: link needed${suffix}`;
+            case "creators-list":
+                return `${setName} [link needed]${suffix}`;
+            case "markdown":
+            default:
+                return `${setName} (${creator}), [link needed]${suffix}`;
+        }
+    }
+
+    switch (copyFormat) {
+        case "name-link":
+            return `${creator} **[${setName}](${link})**${suffix}`;
+        case "plain":
+            return `${setName} by ${creator}: ${link}${suffix}`;
+        case "creators-list":
+            return `${setName} [download](${link})${suffix}`;
+        case "markdown":
+        default:
+            return `${setName} (${creator}), [download here](${link})${suffix}`;
+    }
+}
+
 async function copyResult() {
 
     if (generatedItems.length === 0) {
@@ -1007,16 +1054,28 @@ async function copyResult() {
 
     const rawLines = [];
 
+    // Only populated (and only shown) when the "creators-list" format
+    // is selected — a plain, casse-safe recap of every known creator
+    // used in the build, separate from any per-platform tagging.
+    const creatorsUsed = new Set();
+
+    function trackCreator(creator) {
+        if (copyFormat === "creators-list" && creator) {
+            creatorsUsed.add(creator);
+        }
+    }
+
     recognizedGroups.forEach((group) => {
 
         const safeLink = sanitizeUrl(group.link);
         const key = `${group.creator}::${group.setName}`;
 
-        const text = safeLink
-            ? `${group.setName} (${group.creator}), [download here](${safeLink})`
-            : `${group.setName} (${group.creator}), [link needed]`;
+        trackCreator(group.creator);
 
-        rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
+        rawLines.push({
+            text: buildCreditLine(group.setName, group.creator, safeLink),
+            category: tagFlagEnabled ? itemTags[key] : undefined
+        });
     });
 
     pendingGroups.forEach((group) => {
@@ -1024,11 +1083,12 @@ async function copyResult() {
         const safeLink = sanitizeUrl(group.link);
         const key = `${group.creator}::${group.setName}`;
 
-        const text = safeLink
-            ? `${group.setName} (${group.creator}), [download here](${safeLink}) (pending validation)`
-            : `${group.setName} (${group.creator}), [link needed] (pending validation)`;
+        trackCreator(group.creator);
 
-        rawLines.push({ text, category: tagFlagEnabled ? itemTags[key] : undefined });
+        rawLines.push({
+            text: buildCreditLine(group.setName, group.creator, safeLink, " (pending validation)"),
+            category: tagFlagEnabled ? itemTags[key] : undefined
+        });
     });
 
     multipleGroups.forEach((group) => {
@@ -1054,19 +1114,22 @@ async function copyResult() {
         const chosen = group.candidates[selection];
         const safeLink = sanitizeUrl(chosen.link);
 
-        const text = safeLink
-            ? `${chosen.setName} (${chosen.creator}), [download here](${safeLink})`
-            : `${chosen.setName} (${chosen.creator}), [link needed]`;
+        trackCreator(chosen.creator);
 
-        rawLines.push({ text, category: tagFlagEnabled ? itemTags[group.instance] : undefined });
+        rawLines.push({
+            text: buildCreditLine(chosen.setName, chosen.creator, safeLink),
+            category: tagFlagEnabled ? itemTags[group.instance] : undefined
+        });
     });
 
     missingGroups.forEach((group) => {
 
         const key = `${group.creator}::${group.setName}`;
 
+        trackCreator(group.creator);
+
         rawLines.push({
-            text: `${group.setName} (${group.creator}), [link needed]`,
+            text: buildCreditLine(group.setName, group.creator, ""),
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1119,6 +1182,15 @@ async function copyResult() {
     } else {
 
         text = rawLines.map((l) => l.text).join("\n");
+    }
+
+    if (copyFormat === "creators-list" && creatorsUsed.size > 0) {
+
+        const names = Array.from(creatorsUsed).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: "base" })
+        );
+
+        text += `\n\nCreators\n${names.join(", ")}`;
     }
 
     try {
