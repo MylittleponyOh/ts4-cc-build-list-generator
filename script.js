@@ -1342,14 +1342,28 @@ const clearAllButton = document.getElementById("clearAllSubmissions");
 
 let currentProposedItemName = "";
 let currentProposedInstances = [];
+let currentProposedNames = {}; // { [instance]: real item name for THIS row }
 
-function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess) {
+function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, namesByInstance) {
 
     currentProposedItemName = itemName;
     currentProposedInstances = (instancesCsv || "")
         .split(",")
         .map((i) => i.trim())
         .filter(Boolean);
+
+    // For a single item/group, every instance shares the same name
+    // (the group's set name, or the item's own name) — that's already
+    // correct. For a Bundle & Link submission, each instance is a
+    // genuinely different object, so namesByInstance carries each
+    // one's real name instead of falling back to the (possibly
+    // truncated) modal summary text.
+    currentProposedNames = {};
+
+    currentProposedInstances.forEach((instance) => {
+        currentProposedNames[instance] =
+            (namesByInstance && namesByInstance[instance]) || itemName;
+    });
 
     modalItemName.textContent = `For item: ${itemName}`;
 
@@ -1453,7 +1467,8 @@ result.addEventListener("click", (event) => {
             `${instances.length} items, ${summary}`,
             instances.join(","),
             "",
-            ""
+            "",
+            bundleSelection
         );
 
         return;
@@ -1540,7 +1555,7 @@ submitForm.addEventListener("submit", async (event) => {
         }
 
         const submission = {
-            itemName: currentProposedItemName,
+            itemName: currentProposedNames[instances[i]] || currentProposedItemName,
             instance: instances[i],
             setName: setName,
             creator: creator,
