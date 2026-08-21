@@ -423,24 +423,20 @@ function instanceCount(items) {
     return items.reduce((sum, item) => sum + item.instances.length, 0);
 }
 
-// Flattens every Instance ID across a set of items into one list —
-// needed so a "Submit a link" click covers a whole merged package
-// (which can carry several instances under one entry), not just the
-// first one S4TI happened to list.
-function allInstances(items) {
+// One representative Instance ID per distinct item — NOT every instance
+// within an item. A single S4TI entry can list several "Instance:" lines
+// for two very different reasons: a genuine merged package (several
+// distinct objects bundled together), or just ordinary color swatches
+// of the SAME object. Nothing in the text tells them apart, so treating
+// every instance as its own submission floods the database with
+// redundant rows for plain swatched items and risks false "multiple
+// matches" from coincidental overlaps. One instance per named item is
+// enough to identify it, whichever case it actually is.
+function representativeInstances(items) {
 
-    const result = [];
-
-    items.forEach((item) => {
-        item.instances.forEach((rawInstance) => {
-            const trimmed = rawInstance.trim();
-            if (trimmed) {
-                result.push(trimmed);
-            }
-        });
-    });
-
-    return result;
+    return items
+        .map((item) => (item.instances[0] || "").trim())
+        .filter(Boolean);
 }
 
 
@@ -756,7 +752,7 @@ function renderResults(items) {
             <button
                 class="propose-button"
                 type="button"
-                data-instances="${escapeHTML(allInstances(group.items).join(","))}"
+                data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
                 data-setname="${escapeHTML(group.setName)}"
                 data-creator="${escapeHTML(group.creator)}"
             >
@@ -901,7 +897,7 @@ function renderResults(items) {
         const element = document.createElement("div");
         element.className = "cc-item unknown";
 
-        const instances = item.instances.map((i) => i.trim()).filter(Boolean);
+        const instances = representativeInstances([item]);
 
         element.innerHTML = `
             <div class="cc-item-row">
