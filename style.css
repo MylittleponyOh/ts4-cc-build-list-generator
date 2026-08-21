@@ -458,6 +458,7 @@ button:disabled {
 .card-header-right {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -813,6 +814,63 @@ button:disabled {
 .cc-meta-unknown {
     font-style: italic;
     color: var(--text-faint);
+}
+
+
+.bundle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 10px 12px;
+    margin-bottom: 8px;
+
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-small);
+
+    background: var(--surface-soft);
+
+    font-size: 11.5px;
+    color: var(--text);
+}
+
+
+.bundle-link-button {
+    padding: 6px 12px;
+
+    border: none;
+    border-radius: var(--radius-small);
+
+    background: var(--accent);
+    color: white;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.bundle-link-button:disabled {
+    background: var(--border-strong);
+    cursor: not-allowed;
+}
+
+
+.bundle-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    cursor: pointer;
+}
+
+
+.bundle-checkbox input {
+    width: 14px;
+    height: 14px;
+
+    flex-shrink: 0;
 }
 
 
