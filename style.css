@@ -1182,8 +1182,20 @@ button:disabled {
 }
 
 
+.format-option:has(input:checked) {
+    background: var(--accent);
+    border-radius: var(--radius-small);
+}
+
+
 .format-option:has(input:checked) .format-name {
+    color: white;
     font-weight: 700;
+}
+
+
+.format-option:has(input:checked) .format-example {
+    color: rgba(255, 255, 255, 0.75);
 }
 
 
