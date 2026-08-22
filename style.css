@@ -223,7 +223,7 @@ body {
 
 
 .card-hint {
-    margin: -10px 0 14px;
+    margin: 4px 0 14px;
 
     color: var(--text-faint);
     font-size: 10.5px;
