@@ -1510,14 +1510,21 @@ const clearAllButton = document.getElementById("clearAllSubmissions");
 let currentProposedItemName = "";
 let currentProposedInstances = [];
 let currentProposedNames = {}; // { [instance]: real item name for THIS row }
+let currentProposedSource = ""; // moderation tag, e.g. "Sent through Bundle & Link"
 
-function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, namesByInstance) {
+function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, namesByInstance, source) {
 
     currentProposedItemName = itemName;
     currentProposedInstances = (instancesCsv || "")
         .split(",")
         .map((i) => i.trim())
         .filter(Boolean);
+
+    // Same anti-abuse logic as AYACC (Are You A CC Creator): tagging
+    // WHERE a submission came from lets moderation catch mismatched
+    // items slipped into the same bundle under one link. Regular
+    // single-item submissions leave this blank on purpose.
+    currentProposedSource = source || "";
 
     // For a single item/group, every instance shares the same name
     // (the group's set name, or the item's own name) — that's already
@@ -1641,7 +1648,8 @@ result.addEventListener("click", (event) => {
             instances.join(","),
             "",
             "",
-            bundleSelection
+            bundleSelection,
+            "Sent through Bundle & Link"
         );
 
         return;
@@ -1737,6 +1745,7 @@ submitForm.addEventListener("submit", async (event) => {
             part: part,
             creator: creator,
             link: link,
+            source: currentProposedSource,
             submittedAt: new Date().toISOString()
         };
 
@@ -1959,7 +1968,7 @@ bundleForm.addEventListener("submit", async (event) => {
             part: part,
             creator: creator,
             link: link,
-            source: "Sent through AYAC",
+            source: "Sent through AYACC",
             submittedAt: new Date().toISOString()
         };
 
