@@ -50,7 +50,7 @@ async function loadDatabase() {
 
         DATABASE_INDEX = index;
 
-        populateCreatorsDatalist();
+        updateKnownCreators();
 
     } catch (error) {
 
@@ -60,9 +60,14 @@ async function loadDatabase() {
 }
 
 // Known creators, pulled straight from the live database — powers the
-// autocomplete on the submission forms. Still just a suggestion: typing
-// a name that isn't listed yet is always allowed, for new creators.
-function populateCreatorsDatalist() {
+// custom autocomplete on the submission forms. Still just a suggestion:
+// typing a name that isn't listed yet is always allowed, for new
+// creators. (Not a native <datalist> — its dropdown position can't be
+// controlled with CSS and rendered oddly, even in Chrome, so this is a
+// small custom component we fully control instead.)
+let KNOWN_CREATORS = [];
+
+function updateKnownCreators() {
 
     const names = new Set();
 
@@ -74,18 +79,76 @@ function populateCreatorsDatalist() {
         });
     });
 
-    const sorted = Array.from(names).sort((a, b) =>
+    KNOWN_CREATORS = Array.from(names).sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: "base" })
     );
-
-    const datalist = document.getElementById("creatorsList");
-
-    datalist.innerHTML = sorted
-        .map((name) => `<option value="${escapeHTML(name)}"></option>`)
-        .join("");
 }
 
 const databaseLoadPromise = loadDatabase();
+
+// ------------------------------------------
+// CUSTOM CREATOR AUTOCOMPLETE
+// ------------------------------------------
+
+function setupCreatorAutocomplete(input, suggestionsBox) {
+
+    function render(query) {
+
+        const trimmed = query.trim().toLowerCase();
+
+        const matches = trimmed
+            ? KNOWN_CREATORS.filter((name) => name.toLowerCase().includes(trimmed))
+            : KNOWN_CREATORS;
+
+        if (matches.length === 0) {
+            suggestionsBox.classList.remove("show");
+            suggestionsBox.innerHTML = "";
+            return;
+        }
+
+        // Capped so a huge creator list never renders hundreds of rows
+        // at once — typing narrows it down fast anyway.
+        suggestionsBox.innerHTML = matches
+            .slice(0, 50)
+            .map((name) => `<div class="autocomplete-suggestion">${escapeHTML(name)}</div>`)
+            .join("");
+
+        suggestionsBox.classList.add("show");
+    }
+
+    input.addEventListener("input", () => render(input.value));
+    input.addEventListener("focus", () => render(input.value));
+
+    suggestionsBox.addEventListener("click", (event) => {
+
+        const item = event.target.closest(".autocomplete-suggestion");
+
+        if (!item) {
+            return;
+        }
+
+        input.value = item.textContent;
+        suggestionsBox.classList.remove("show");
+        suggestionsBox.innerHTML = "";
+    });
+
+    document.addEventListener("click", (event) => {
+
+        if (event.target !== input && !suggestionsBox.contains(event.target)) {
+            suggestionsBox.classList.remove("show");
+        }
+    });
+}
+
+setupCreatorAutocomplete(
+    document.getElementById("fieldCreator"),
+    document.getElementById("fieldCreatorSuggestions")
+);
+
+setupCreatorAutocomplete(
+    document.getElementById("bundleCreator"),
+    document.getElementById("bundleCreatorSuggestions")
+);
 
 
 // ------------------------------------------
