@@ -1426,21 +1426,37 @@ async function copyResult() {
         text += `\n\nCreators\n${names.join(", ")}`;
     }
 
+    let copySucceeded = false;
+
     try {
-
         await navigator.clipboard.writeText(text);
-        ("List copied!");
-
+        copySucceeded = true;
     } catch (error) {
-
-        const temporaryTextarea = document.createElement("textarea");
-        temporaryTextarea.value = text;
-        document.body.appendChild(temporaryTextarea);
-        temporaryTextarea.select();
-        document.execCommand("copy");
-        temporaryTextarea.remove();
-        ("List copied!");
+        console.error("Clipboard API failed:", error);
     }
+
+    if (!copySucceeded) {
+
+        try {
+
+            const temporaryTextarea = document.createElement("textarea");
+            temporaryTextarea.value = text;
+            document.body.appendChild(temporaryTextarea);
+            temporaryTextarea.select();
+            document.execCommand("copy");
+            temporaryTextarea.remove();
+
+        } catch (fallbackError) {
+            console.error("Fallback copy also failed:", fallbackError);
+        }
+    }
+
+    // Always shown, exactly once — regardless of which method above
+    // actually succeeded. Previously this lived inside each branch, so
+    // a failure in the fallback itself (document.execCommand can also
+    // throw in some focus-related edge cases) would silently kill the
+    // function before ever reaching it.
+    showToast("List copied!");
 }
 
 copyButton.addEventListener("click", copyResult);
