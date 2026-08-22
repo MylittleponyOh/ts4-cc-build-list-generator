@@ -819,7 +819,7 @@ function renderResults(items) {
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
                 <span class="cc-status pending">⏳ pending (${group.items.length})</span>
             </div>
 
@@ -862,7 +862,7 @@ function renderResults(items) {
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
                 <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
             </div>
 
@@ -902,7 +902,7 @@ function renderResults(items) {
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
                 <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
             </div>
 
@@ -1299,7 +1299,7 @@ async function copyResult() {
 
         const safeLink = sanitizeUrl(group.link);
         const key = `${group.creator}::${group.setName}::${group.part || ""}`;
-        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
+        const displaySetName = group.part ? `${group.setName} - ${group.part}` : group.setName;
 
         trackCreator(group.creator);
 
@@ -1313,7 +1313,7 @@ async function copyResult() {
 
         const safeLink = sanitizeUrl(group.link);
         const key = `${group.creator}::${group.setName}::${group.part || ""}`;
-        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
+        const displaySetName = group.part ? `${group.setName} - ${group.part}` : group.setName;
 
         trackCreator(group.creator);
 
@@ -1357,7 +1357,7 @@ async function copyResult() {
     missingGroups.forEach((group) => {
 
         const key = `${group.creator}::${group.setName}::${group.part || ""}`;
-        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
+        const displaySetName = group.part ? `${group.setName} - ${group.part}` : group.setName;
 
         trackCreator(group.creator);
 
