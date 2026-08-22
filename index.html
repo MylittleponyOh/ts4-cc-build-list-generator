@@ -301,7 +301,10 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <label>
                     Creator *
-                    <input type="text" id="fieldCreator" required placeholder="Ex: Valia" list="creatorsList" autocomplete="off">
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="fieldCreator" required placeholder="Ex: Valia" autocomplete="off">
+                        <div id="fieldCreatorSuggestions" class="autocomplete-suggestions"></div>
+                    </div>
                 </label>
 
                 <label>
@@ -355,7 +358,10 @@ Instance: 0x00000000!0x..."></textarea>
 
                 <label>
                     Creator *
-                    <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh" list="creatorsList" autocomplete="off">
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="bundleCreator" required placeholder="Ex: MylittleponyOh" autocomplete="off">
+                        <div id="bundleCreatorSuggestions" class="autocomplete-suggestions"></div>
+                    </div>
                 </label>
 
                 <label>
@@ -410,11 +416,6 @@ Instance: 0x00000000!0x..."></textarea>
     <div id="toast" class="toast">
         List copied!
     </div>
-
-
-    <!-- Shared autocomplete list, filled from known creators in the
-         database. Both submission forms point to this same list. -->
-    <datalist id="creatorsList"></datalist>
 
 
     <script src="script.js"></script>
