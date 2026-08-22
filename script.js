@@ -1429,7 +1429,7 @@ async function copyResult() {
     try {
 
         await navigator.clipboard.writeText(text);
-        showToast("List copied!");
+        ("List copied!");
 
     } catch (error) {
 
@@ -1439,7 +1439,7 @@ async function copyResult() {
         temporaryTextarea.select();
         document.execCommand("copy");
         temporaryTextarea.remove();
-        showToast("List copied!");
+        ("List copied!");
     }
 }
 
@@ -1721,7 +1721,7 @@ submitForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit suggestion";
 
-    showToast("Suggestion sent, thank you!");
+    showToast("Suggestion sent! You just made the next list easier for YOU & everyone else!");
 
     // Clear the bundle checkboxes for the next batch, but leave Link &
     // Bundle mode itself on — the builder likely has more sets to link.
