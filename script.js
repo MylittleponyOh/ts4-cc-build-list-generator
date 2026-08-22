@@ -640,7 +640,7 @@ function classifyAndGroup(items) {
         if (candidates.length === 1 && candidates[0].link && candidates[0].link.trim()) {
 
             const match = candidates[0];
-            const key = `${match.creator}::${match.setName}`;
+            const key = `${match.creator}::${match.setName}::${match.part || ""}`;
 
             if (!buckets.recognized.has(key)) {
                 buckets.recognized.set(key, { ...match, items: [] });
@@ -672,12 +672,13 @@ function classifyAndGroup(items) {
 
         if (pending) {
 
-            const key = `${pending.creator}::${pending.setName}`;
+            const key = `${pending.creator}::${pending.setName}::${pending.part || ""}`;
 
             if (!buckets.pending.has(key)) {
                 buckets.pending.set(key, {
                     creator: pending.creator,
                     setName: pending.setName,
+                    part: pending.part || "",
                     link: pending.link,
                     items: []
                 });
@@ -714,7 +715,7 @@ function classifyAndGroup(items) {
         if (candidates.length === 1) {
 
             const match = candidates[0];
-            const key = `${match.creator}::${match.setName}`;
+            const key = `${match.creator}::${match.setName}::${match.part || ""}`;
 
             if (!buckets.missing.has(key)) {
                 buckets.missing.set(key, {
@@ -814,11 +815,11 @@ function renderResults(items) {
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
-        const tagKey = `${group.creator}::${group.setName}`;
+        const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
                 <span class="cc-status pending">⏳ pending (${group.items.length})</span>
             </div>
 
@@ -857,11 +858,11 @@ function renderResults(items) {
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
-        const tagKey = `${group.creator}::${group.setName}`;
+        const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
                 <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
             </div>
 
@@ -897,11 +898,11 @@ function renderResults(items) {
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
-        const tagKey = `${group.creator}::${group.setName}`;
+        const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
         element.innerHTML = `
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}</span>
+                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` (${escapeHTML(group.part)})` : ""}</span>
                 <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
             </div>
 
@@ -1297,12 +1298,13 @@ async function copyResult() {
     recognizedGroups.forEach((group) => {
 
         const safeLink = sanitizeUrl(group.link);
-        const key = `${group.creator}::${group.setName}`;
+        const key = `${group.creator}::${group.setName}::${group.part || ""}`;
+        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
 
         trackCreator(group.creator);
 
         rawLines.push({
-            text: buildCreditLine(group.setName, group.creator, safeLink),
+            text: buildCreditLine(displaySetName, group.creator, safeLink),
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1310,12 +1312,13 @@ async function copyResult() {
     pendingGroups.forEach((group) => {
 
         const safeLink = sanitizeUrl(group.link);
-        const key = `${group.creator}::${group.setName}`;
+        const key = `${group.creator}::${group.setName}::${group.part || ""}`;
+        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
 
         trackCreator(group.creator);
 
         rawLines.push({
-            text: buildCreditLine(group.setName, group.creator, safeLink, " (pending validation)"),
+            text: buildCreditLine(displaySetName, group.creator, safeLink, " (pending validation)"),
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1353,12 +1356,13 @@ async function copyResult() {
 
     missingGroups.forEach((group) => {
 
-        const key = `${group.creator}::${group.setName}`;
+        const key = `${group.creator}::${group.setName}::${group.part || ""}`;
+        const displaySetName = group.part ? `${group.setName} (${group.part})` : group.setName;
 
         trackCreator(group.creator);
 
         rawLines.push({
-            text: buildCreditLine(group.setName, group.creator, ""),
+            text: buildCreditLine(displaySetName, group.creator, ""),
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
