@@ -795,6 +795,28 @@ function generateList() {
 // DISPLAY RESULTS
 // ==========================================
 
+// Wraps a status category's inner HTML into a collapsible <details>
+// section (closed by default, to keep the results panel scannable).
+// Returns "" if there's nothing to show for this status.
+function wrapStatusSection(statusClass, badgeText, count, innerHTML) {
+
+    if (count === 0) {
+        return "";
+    }
+
+    return `
+        <details class="status-group">
+            <summary class="status-group-summary">
+                <span class="cc-status ${statusClass}">${badgeText}</span>
+                <span class="status-group-count">${count}</span>
+            </summary>
+            <div class="status-group-body">
+                ${innerHTML}
+            </div>
+        </details>
+    `;
+}
+
 function renderResults(items) {
 
     const list = document.createElement("div");
@@ -805,10 +827,7 @@ function renderResults(items) {
 
     // PENDING GROUPS (user's own submission, awaiting validation)
 
-    pendingGroups.forEach((group) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item pending";
+    const pendingHTML = pendingGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
@@ -817,41 +836,40 @@ function renderResults(items) {
         const safeLink = sanitizeUrl(group.link);
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        element.innerHTML = `
-            <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                <span class="cc-status pending">⏳ pending (${group.items.length})</span>
+        return `
+            <div class="cc-item pending">
+                <div class="cc-item-row">
+                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status pending">⏳ pending (${group.items.length})</span>
+                </div>
+
+                <div class="cc-meta">
+                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                </div>
+
+                ${
+                    safeLink
+                        ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
+                        : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+                }
+
+                <span class="pending-note">Submission pending review</span>
+
+                ${tagFlagRowHTML(tagKey)}
+
+                <details class="cc-details">
+                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <ul>${itemsListHTML}</ul>
+                </details>
             </div>
-
-            <div class="cc-meta">
-                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
-            </div>
-
-            ${
-                safeLink
-                    ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
-                    : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
-            }
-
-            <span class="pending-note">Submission pending review</span>
-
-            ${tagFlagRowHTML(tagKey)}
-
-            <details class="cc-details">
-                <summary>View the ${instanceCount(group.items)} items</summary>
-                <ul>${itemsListHTML}</ul>
-            </details>
         `;
+    }).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("pending", "⏳ pending", pendingGroups.length, pendingHTML);
 
     // RECOGNIZED GROUPS (in database, with a link)
 
-    recognizedGroups.forEach((group) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item recognized";
+    const recognizedHTML = recognizedGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
@@ -860,39 +878,38 @@ function renderResults(items) {
         const safeLink = sanitizeUrl(group.link);
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        element.innerHTML = `
-            <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
+        return `
+            <div class="cc-item recognized">
+                <div class="cc-item-row">
+                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
+                </div>
+
+                <div class="cc-meta">
+                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                </div>
+
+                ${
+                    safeLink
+                        ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
+                        : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+                }
+
+                ${tagFlagRowHTML(tagKey)}
+
+                <details class="cc-details">
+                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <ul>${itemsListHTML}</ul>
+                </details>
             </div>
-
-            <div class="cc-meta">
-                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
-            </div>
-
-            ${
-                safeLink
-                    ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the link</a>`
-                    : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
-            }
-
-            ${tagFlagRowHTML(tagKey)}
-
-            <details class="cc-details">
-                <summary>View the ${instanceCount(group.items)} items</summary>
-                <ul>${itemsListHTML}</ul>
-            </details>
         `;
+    }).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("recognized", "✓ recognized", recognizedGroups.length, recognizedHTML);
 
     // MISSING-LINK GROUPS (in database, no link yet)
 
-    missingGroups.forEach((group) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item missing-link";
+    const missingHTML = missingGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
@@ -900,44 +917,43 @@ function renderResults(items) {
 
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        element.innerHTML = `
-            <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
+        return `
+            <div class="cc-item missing-link">
+                <div class="cc-item-row">
+                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
+                </div>
+
+                <div class="cc-meta">
+                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                </div>
+
+                <button
+                    class="propose-button"
+                    type="button"
+                    data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
+                    data-setname="${escapeHTML(group.setName)}"
+                    data-creator="${escapeHTML(group.creator)}"
+                >
+                    + Submit a link
+                </button>
+
+                ${tagFlagRowHTML(tagKey)}
+
+                <details class="cc-details">
+                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <ul>${itemsListHTML}</ul>
+                </details>
             </div>
-
-            <div class="cc-meta">
-                by <span class="cc-creator">${escapeHTML(group.creator)}</span>
-            </div>
-
-            <button
-                class="propose-button"
-                type="button"
-                data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
-                data-setname="${escapeHTML(group.setName)}"
-                data-creator="${escapeHTML(group.creator)}"
-            >
-                + Submit a link
-            </button>
-
-            ${tagFlagRowHTML(tagKey)}
-
-            <details class="cc-details">
-                <summary>View the ${instanceCount(group.items)} items</summary>
-                <ul>${itemsListHTML}</ul>
-            </details>
         `;
+    }).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("missing", "⚠ link missing", missingGroups.length, missingHTML);
 
     // MULTIPLE MATCHES (same Instance ID, several known candidates —
     // typical of overrides. The person picks which one they actually have.)
 
-    multipleGroups.forEach((group) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item multiple";
+    const multipleHTML = multipleGroups.map((group) => {
 
         const suggestedIndex = guessCandidateIndex(group.items[0], group.candidates);
         const currentSelection = multipleSelections[group.instance];
@@ -987,57 +1003,55 @@ function renderResults(items) {
             ? tagFlagRowHTML(group.instance)
             : "";
 
-        element.innerHTML = `
-            <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(formatCCName(group.items[0].name))}</span>
-                <span class="cc-status multiple">🔀 multiple matches (${group.items.length})</span>
+        return `
+            <div class="cc-item multiple">
+                <div class="cc-item-row">
+                    <span class="cc-name">${escapeHTML(formatCCName(group.items[0].name))}</span>
+                    <span class="cc-status multiple">🔀 multiple matches (${group.items.length})</span>
+                </div>
+
+                <div class="cc-meta">
+                    This Instance ID matches more than one known set, pick the one you actually have:
+                </div>
+
+                <div class="multi-options">
+                    ${optionsHTML}
+                    <label class="multi-option">
+                        <input
+                            type="radio"
+                            name="multi-${escapeHTML(group.instance)}"
+                            data-instance="${escapeHTML(group.instance)}"
+                            value="none"
+                            ${noneChecked ? "checked" : ""}
+                        >
+                        <span>None of these, submit a different link</span>
+                    </label>
+                </div>
+
+                ${resolvedLinkHTML}
+
+                ${
+                    noneChecked
+                        ? `<button class="propose-button" type="button" data-instances="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
+                        : ""
+                }
+
+                ${tagRowHTML}
+
+                <details class="cc-details">
+                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <ul>${itemsListHTML}</ul>
+                </details>
             </div>
-
-            <div class="cc-meta">
-                This Instance ID matches more than one known set, pick the one you actually have:
-            </div>
-
-            <div class="multi-options">
-                ${optionsHTML}
-                <label class="multi-option">
-                    <input
-                        type="radio"
-                        name="multi-${escapeHTML(group.instance)}"
-                        data-instance="${escapeHTML(group.instance)}"
-                        value="none"
-                        ${noneChecked ? "checked" : ""}
-                    >
-                    <span>None of these, submit a different link</span>
-                </label>
-            </div>
-
-            ${resolvedLinkHTML}
-
-            ${
-                noneChecked
-                    ? `<button class="propose-button" type="button" data-instances="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
-                    : ""
-            }
-
-            ${tagRowHTML}
-
-            <details class="cc-details">
-                <summary>View the ${instanceCount(group.items)} items</summary>
-                <ul>${itemsListHTML}</ul>
-            </details>
         `;
+    }).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("multiple", "🔀 multiple matches", multipleGroups.length, multipleHTML);
 
     // CLAIMED ITEMS (already submitted by someone else, awaiting validation)
 
-    claimedItems.forEach((item) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item claimed";
-
-        element.innerHTML = `
+    const claimedHTML = claimedItems.map((item) => `
+        <div class="cc-item claimed">
             <div class="cc-item-row">
                 <span class="cc-name">${escapeHTML(formatCCName(item.name))}</span>
                 <span class="cc-status claimed">🔒 claimed</span>
@@ -1046,10 +1060,10 @@ function renderResults(items) {
             <div class="cc-meta cc-meta-unknown">
                 Already reported by another user, awaiting validation
             </div>
-        `;
+        </div>
+    `).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("claimed", "🔒 claimed", claimedItems.length, claimedHTML);
 
     // UNKNOWN ITEMS (not in the database at all)
 
@@ -1059,27 +1073,23 @@ function renderResults(items) {
         )
         : unknownItems;
 
+    let unknownHTML = "";
+
     if (bundleModeEnabled && sortedUnknown.length > 0) {
 
         const selectedCount = Object.keys(bundleSelection).length;
 
-        const bar = document.createElement("div");
-        bar.className = "bundle-bar";
-
-        bar.innerHTML = `
-            <span>${selectedCount} item${selectedCount === 1 ? "" : "s"} selected</span>
-            <button id="bundleLinkButton" class="bundle-link-button" type="button" ${selectedCount === 0 ? "disabled" : ""}>
-                Link selected
-            </button>
+        unknownHTML += `
+            <div class="bundle-bar">
+                <span>${selectedCount} item${selectedCount === 1 ? "" : "s"} selected</span>
+                <button id="bundleLinkButton" class="bundle-link-button" type="button" ${selectedCount === 0 ? "disabled" : ""}>
+                    Link selected
+                </button>
+            </div>
         `;
-
-        list.appendChild(bar);
     }
 
-    sortedUnknown.forEach((item) => {
-
-        const element = document.createElement("div");
-        element.className = "cc-item unknown";
+    unknownHTML += sortedUnknown.map((item) => {
 
         const instances = representativeInstances([item]);
         const representative = instances[0] || "";
@@ -1089,26 +1099,28 @@ function renderResults(items) {
 
             const isChecked = !!bundleSelection[representative];
 
-            element.innerHTML = `
-                <div class="cc-item-row">
-                    <label class="bundle-checkbox">
-                        <input
-                            type="checkbox"
-                            data-bundle-instance="${escapeHTML(representative)}"
-                            data-bundle-name="${escapeHTML(displayName)}"
-                            ${isChecked ? "checked" : ""}
-                        >
-                        <span class="cc-name">${escapeHTML(displayName)}</span>
-                    </label>
-                    <span class="cc-status unknown">? unknown</span>
+            return `
+                <div class="cc-item unknown">
+                    <div class="cc-item-row">
+                        <label class="bundle-checkbox">
+                            <input
+                                type="checkbox"
+                                data-bundle-instance="${escapeHTML(representative)}"
+                                data-bundle-name="${escapeHTML(displayName)}"
+                                ${isChecked ? "checked" : ""}
+                            >
+                            <span class="cc-name">${escapeHTML(displayName)}</span>
+                        </label>
+                        <span class="cc-status unknown">? unknown</span>
+                    </div>
+
+                    <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
                 </div>
-
-                <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
             `;
+        }
 
-        } else {
-
-            element.innerHTML = `
+        return `
+            <div class="cc-item unknown">
                 <div class="cc-item-row">
                     <span class="cc-name">${escapeHTML(displayName)}</span>
                     <span class="cc-status unknown">? unknown</span>
@@ -1125,11 +1137,11 @@ function renderResults(items) {
                 >
                     + Submit a link
                 </button>
-            `;
-        }
+            </div>
+        `;
+    }).join("");
 
-        list.appendChild(element);
-    });
+    list.innerHTML += wrapStatusSection("unknown", "? unknown", sortedUnknown.length, unknownHTML);
 
     result.innerHTML = "";
     result.appendChild(list);
