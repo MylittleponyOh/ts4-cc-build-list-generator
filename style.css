@@ -1458,6 +1458,19 @@ button:disabled {
     resize: vertical;
 }
 
+.part-hint {
+    padding: 9px 11px;
+
+    border-radius: var(--radius-small);
+
+    background: #f7ead0;
+    color: #91641e;
+
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
 .modal-disclaimer {
     color: var(--text-faint);
     font-size: 10.5px;
