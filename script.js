@@ -1492,7 +1492,8 @@ const GOOGLE_FORM_ENTRIES = {
     setName: "entry.261787736",
     part: "entry.1436122946",
     creator: "entry.762747753",
-    link: "entry.1012285333"
+    link: "entry.1012285333",
+    source: "entry.1815124886"
 };
 
 const submitModal = document.getElementById("submitModal");
@@ -1675,6 +1676,7 @@ async function submitToGoogleForm(entryValues) {
     body.append(GOOGLE_FORM_ENTRIES.part, entryValues.part || "");
     body.append(GOOGLE_FORM_ENTRIES.creator, entryValues.creator || "");
     body.append(GOOGLE_FORM_ENTRIES.link, entryValues.link || "");
+    body.append(GOOGLE_FORM_ENTRIES.source, entryValues.source || "");
 
     try {
 
@@ -1957,7 +1959,7 @@ bundleForm.addEventListener("submit", async (event) => {
             part: part,
             creator: creator,
             link: link,
-            note: "Submitted as a whole set",
+            source: "Sent through AYAC",
             submittedAt: new Date().toISOString()
         };
 
@@ -2028,7 +2030,7 @@ function renderAdminList() {
                             ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer">${escapeHTML(safeLink)}</a>`
                             : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
                     }
-                    ${sub.note ? `<br>Note: ${escapeHTML(sub.note)}` : ""}
+                    ${sub.source ? `<br>Source: ${escapeHTML(sub.source)}` : ""}
                 </div>
                 <button class="admin-copy" data-index="${index}" type="button">
                     ⧉ Copy as JSON
