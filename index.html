@@ -300,6 +300,15 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                     <input type="text" id="fieldSetName" required placeholder="Ex: Cozy Cabin">
                 </label>
 
+                <div id="partHint" class="part-hint" style="display: none;">
+                    ⚠ This set already has known parts: <span id="partHintList"></span>. Specify which one this/these items belong to.
+                </div>
+
+                <label>
+                    Part (optional)
+                    <input type="text" id="fieldPart" placeholder="Ex: Part 2">
+                </label>
+
                 <label>
                     Creator *
                     <div class="autocomplete-wrapper">
