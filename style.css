@@ -1691,6 +1691,8 @@ footer {
 
     pointer-events: none;
 
+    z-index: 150;
+
     transition: opacity 0.25s, transform 0.25s;
 }
 
