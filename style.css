@@ -1376,6 +1376,51 @@ button:disabled {
     outline: none;
 }
 
+
+.autocomplete-wrapper {
+    position: relative;
+}
+
+
+.autocomplete-suggestions {
+    display: none;
+
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+
+    max-height: 160px;
+    overflow-y: auto;
+
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-small);
+    box-shadow: 0 6px 18px rgba(13, 13, 13, 0.15);
+
+    z-index: 200;
+}
+
+
+.autocomplete-suggestions.show {
+    display: block;
+}
+
+
+.autocomplete-suggestion {
+    padding: 8px 11px;
+
+    font-size: 12px;
+    color: var(--text);
+
+    cursor: pointer;
+}
+
+
+.autocomplete-suggestion:hover {
+    background: var(--surface-soft);
+}
+
 #bundleExport {
     font-family:
         "SFMono-Regular",
