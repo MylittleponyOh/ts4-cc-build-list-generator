@@ -1769,22 +1769,38 @@ bundleForm.addEventListener("submit", async (event) => {
 
     items.forEach((item) => {
 
-        const instance = representativeInstances([item])[0];
+        const allTrimmedInstances = item.instances
+            .map((i) => i.trim())
+            .filter(Boolean);
 
-        if (!instance) {
+        if (allTrimmedInstances.length === 0) {
             return;
         }
 
         // Already fully recognized (has a working link), or already
         // claimed by someone else's submission — nothing useful to add
-        // by re-submitting it, so skip it rather than creating a
-        // redundant row in the pending Sheet.
-        const existing = DATABASE_INDEX[instance];
-        const alreadyRecognized = existing && existing.some((c) => c.link && c.link.trim());
-        const alreadyClaimed = CLAIMED_SET.has(instance);
+        // by re-submitting it. IMPORTANT: check EVERY instance the item
+        // carries, not just the first one — a swatched item might have
+        // its instances listed in any order, and only one of them may
+        // already be registered in the database. If ANY instance is
+        // already covered, treat the whole item as known (this is what
+        // makes "same item, different color" not get half-skipped).
+        const alreadyCovered = allTrimmedInstances.some((instance) => {
 
-        if (alreadyRecognized || alreadyClaimed) {
+            const existing = DATABASE_INDEX[instance];
+            const hasLink = existing && existing.some((c) => c.link && c.link.trim());
+
+            return hasLink || CLAIMED_SET.has(instance);
+        });
+
+        if (alreadyCovered) {
             skippedCount += 1;
+            return;
+        }
+
+        const instance = representativeInstances([item])[0];
+
+        if (!instance) {
             return;
         }
 
