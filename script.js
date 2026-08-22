@@ -162,21 +162,14 @@ setupCreatorAutocomplete(
 // values recorded in the verified database, we flag it and focus the
 // Part field, but never block submitting without one.
 
-const fieldSetNameInput = document.getElementById("fieldSetName");
-const partHint = document.getElementById("partHint");
-const partHintList = document.getElementById("partHintList");
-const fieldPartInput = document.getElementById("fieldPart");
+function findKnownParts(setNameQuery) {
 
-fieldSetNameInput.addEventListener("input", () => {
-
-    const typed = fieldSetNameInput.value.trim().toLowerCase();
+    const typed = setNameQuery.trim().toLowerCase();
+    const knownParts = new Set();
 
     if (!typed) {
-        partHint.style.display = "none";
-        return;
+        return knownParts;
     }
-
-    const knownParts = new Set();
 
     Object.values(DATABASE_INDEX).forEach((candidates) => {
         candidates.forEach((candidate) => {
@@ -191,17 +184,41 @@ fieldSetNameInput.addEventListener("input", () => {
         });
     });
 
-    if (knownParts.size > 1) {
+    return knownParts;
+}
 
-        partHintList.textContent = Array.from(knownParts).join(", ");
-        partHint.style.display = "block";
-        fieldPartInput.focus();
+function wirePartHint(setNameInput, hintBox, hintListSpan, partInput) {
 
-    } else {
+    setNameInput.addEventListener("input", () => {
 
-        partHint.style.display = "none";
-    }
-});
+        const knownParts = findKnownParts(setNameInput.value);
+
+        if (knownParts.size > 1) {
+
+            hintListSpan.textContent = Array.from(knownParts).join(", ");
+            hintBox.style.display = "block";
+            partInput.focus();
+
+        } else {
+
+            hintBox.style.display = "none";
+        }
+    });
+}
+
+const fieldSetNameInput = document.getElementById("fieldSetName");
+const partHint = document.getElementById("partHint");
+const partHintList = document.getElementById("partHintList");
+const fieldPartInput = document.getElementById("fieldPart");
+
+wirePartHint(fieldSetNameInput, partHint, partHintList, fieldPartInput);
+
+const bundleSetNameInput = document.getElementById("bundleSetName");
+const bundlePartHint = document.getElementById("bundlePartHint");
+const bundlePartHintList = document.getElementById("bundlePartHintList");
+const bundlePartInput = document.getElementById("bundlePart");
+
+wirePartHint(bundleSetNameInput, bundlePartHint, bundlePartHintList, bundlePartInput);
 
 
 // ------------------------------------------
@@ -1800,6 +1817,7 @@ function openBundleModal() {
     bundleForm.reset();
     document.getElementById("bundleProgress").classList.remove("show");
     document.getElementById("bundleProgressFill").style.width = "0%";
+    bundlePartHint.style.display = "none";
     bundleModal.classList.add("show");
 }
 
@@ -1818,6 +1836,7 @@ bundleForm.addEventListener("submit", async (event) => {
 
     const exportText = document.getElementById("bundleExport").value.trim();
     const setName = document.getElementById("bundleSetName").value.trim();
+    const part = document.getElementById("bundlePart").value.trim();
     const creator = document.getElementById("bundleCreator").value.trim();
     const link = document.getElementById("bundleLink").value.trim();
 
@@ -1903,6 +1922,7 @@ bundleForm.addEventListener("submit", async (event) => {
             itemName: entry.itemName,
             instance: entry.instance,
             setName: setName,
+            part: part,
             creator: creator,
             link: link,
             note: "Submitted as a whole set",
