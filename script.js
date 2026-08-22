@@ -38,7 +38,8 @@ async function loadDatabase() {
             const entry = {
                 creator: row.Creator || "",
                 setName: row.SetName || "",
-                link: row.Link || ""
+                link: row.Link || "",
+                part: row.Part || ""
             };
 
             if (!index[id]) {
@@ -149,6 +150,58 @@ setupCreatorAutocomplete(
     document.getElementById("bundleCreator"),
     document.getElementById("bundleCreatorSuggestions")
 );
+
+// ------------------------------------------
+// SOFT MULTI-PART DETECTION
+// ------------------------------------------
+// Some creators (Felixandre, Harrie, Pierisim...) release big
+// collections in several parts, without ever naming which part an
+// item belongs to in the file itself. This can't be detected from the
+// Instance ID or filename — nothing in the data says it. This is just
+// a nudge: if the typed Set Name already has multiple known "Part"
+// values recorded in the verified database, we flag it and focus the
+// Part field, but never block submitting without one.
+
+const fieldSetNameInput = document.getElementById("fieldSetName");
+const partHint = document.getElementById("partHint");
+const partHintList = document.getElementById("partHintList");
+const fieldPartInput = document.getElementById("fieldPart");
+
+fieldSetNameInput.addEventListener("input", () => {
+
+    const typed = fieldSetNameInput.value.trim().toLowerCase();
+
+    if (!typed) {
+        partHint.style.display = "none";
+        return;
+    }
+
+    const knownParts = new Set();
+
+    Object.values(DATABASE_INDEX).forEach((candidates) => {
+        candidates.forEach((candidate) => {
+            if (
+                candidate.setName &&
+                candidate.setName.trim().toLowerCase() === typed &&
+                candidate.part &&
+                candidate.part.trim()
+            ) {
+                knownParts.add(candidate.part.trim());
+            }
+        });
+    });
+
+    if (knownParts.size > 1) {
+
+        partHintList.textContent = Array.from(knownParts).join(", ");
+        partHint.style.display = "block";
+        fieldPartInput.focus();
+
+    } else {
+
+        partHint.style.display = "none";
+    }
+});
 
 
 // ------------------------------------------
@@ -1388,6 +1441,7 @@ const GOOGLE_FORM_ENTRIES = {
     itemName: "entry.189940358",
     instance: "entry.2096533801",
     setName: "entry.261787736",
+    part: "entry.1436122946",
     creator: "entry.762747753",
     link: "entry.1012285333"
 };
@@ -1434,6 +1488,12 @@ function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, nam
 
     document.getElementById("fieldSetName").value = setNameGuess || "";
     document.getElementById("fieldCreator").value = creatorGuess || "";
+
+    partHint.style.display = "none";
+
+    if (setNameGuess) {
+        fieldSetNameInput.dispatchEvent(new Event("input"));
+    }
 
     submitModal.classList.add("show");
 }
@@ -1563,6 +1623,7 @@ async function submitToGoogleForm(entryValues) {
     body.append(GOOGLE_FORM_ENTRIES.itemName, entryValues.itemName || "");
     body.append(GOOGLE_FORM_ENTRIES.instance, entryValues.instance || "");
     body.append(GOOGLE_FORM_ENTRIES.setName, entryValues.setName || "");
+    body.append(GOOGLE_FORM_ENTRIES.part, entryValues.part || "");
     body.append(GOOGLE_FORM_ENTRIES.creator, entryValues.creator || "");
     body.append(GOOGLE_FORM_ENTRIES.link, entryValues.link || "");
 
@@ -1595,6 +1656,7 @@ submitForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = true;
 
     const setName = document.getElementById("fieldSetName").value.trim();
+    const part = document.getElementById("fieldPart").value.trim();
     const creator = document.getElementById("fieldCreator").value.trim();
     const link = document.getElementById("fieldLink").value.trim();
 
@@ -1621,6 +1683,7 @@ submitForm.addEventListener("submit", async (event) => {
             itemName: currentProposedNames[instances[i]] || currentProposedItemName,
             instance: instances[i],
             setName: setName,
+            part: part,
             creator: creator,
             link: link,
             submittedAt: new Date().toISOString()
