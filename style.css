@@ -1123,44 +1123,34 @@ button:disabled {
 }
 
 
-/* SETTINGS FAB — mirrors the toolbox, but top-right and the panel
-   drops down instead of popping up. */
+/* SETTINGS TRIGGER — small inline icon in card 02's header, right next
+   to Refresh. The panel itself is unchanged: still fixed top-right of
+   the viewport, still drops down on open. Only the trigger moved. */
 
-.settings-fab {
-    position: fixed;
-    right: 24px;
-    top: 24px;
-
-    width: 48px;
-    height: 48px;
-
+.icon-button-small {
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    border: none;
-    border-radius: 2px 16px 2px 2px;
+    width: 22px;
+    height: 22px;
 
-    background: var(--accent);
-    color: white;
+    padding: 0;
 
-    font-size: 19px;
-    font-weight: 800;
+    border-radius: var(--radius-small);
 
-    cursor: pointer;
+    background: transparent;
+    color: var(--text-soft);
 
-    z-index: 90;
-
-    box-shadow: 0 4px 14px rgba(13, 13, 13, 0.25);
-
-    transition: background 0.15s, color 0.15s, transform 0.12s ease;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 
-.settings-fab:hover {
-    background: white;
+.icon-button-small:hover {
+    background: var(--surface-soft);
     color: var(--text);
-    transform: translateY(1px);
 }
 
 
