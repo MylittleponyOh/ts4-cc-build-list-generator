@@ -1674,17 +1674,35 @@ result.addEventListener("click", (event) => {
 });
 
 
+// A cell starting with =, +, -, or @ can be interpreted as a formula by
+// Google Sheets and execute automatically just from being displayed —
+// no click needed. Formatting the destination columns as "Plain text"
+// already guards against this, but that setting can drift or get reset,
+// so this is a second, independent layer: prefixing with a leading
+// apostrophe forces Sheets to always treat the value as literal text,
+// regardless of how the column happens to be formatted.
+function neutralizeFormula(value) {
+
+    const str = (value || "").toString();
+
+    if (/^[=+\-@]/.test(str)) {
+        return `'${str}`;
+    }
+
+    return str;
+}
+
 async function submitToGoogleForm(entryValues) {
 
     const body = new URLSearchParams();
 
-    body.append(GOOGLE_FORM_ENTRIES.itemName, entryValues.itemName || "");
-    body.append(GOOGLE_FORM_ENTRIES.instance, entryValues.instance || "");
-    body.append(GOOGLE_FORM_ENTRIES.setName, entryValues.setName || "");
-    body.append(GOOGLE_FORM_ENTRIES.part, entryValues.part || "");
-    body.append(GOOGLE_FORM_ENTRIES.creator, entryValues.creator || "");
-    body.append(GOOGLE_FORM_ENTRIES.link, entryValues.link || "");
-    body.append(GOOGLE_FORM_ENTRIES.source, entryValues.source || "");
+    body.append(GOOGLE_FORM_ENTRIES.itemName, neutralizeFormula(entryValues.itemName));
+    body.append(GOOGLE_FORM_ENTRIES.instance, neutralizeFormula(entryValues.instance));
+    body.append(GOOGLE_FORM_ENTRIES.setName, neutralizeFormula(entryValues.setName));
+    body.append(GOOGLE_FORM_ENTRIES.part, neutralizeFormula(entryValues.part));
+    body.append(GOOGLE_FORM_ENTRIES.creator, neutralizeFormula(entryValues.creator));
+    body.append(GOOGLE_FORM_ENTRIES.link, neutralizeFormula(entryValues.link));
+    body.append(GOOGLE_FORM_ENTRIES.source, neutralizeFormula(entryValues.source));
 
     try {
 
