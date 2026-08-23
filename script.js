@@ -1012,7 +1012,7 @@ function renderResults(items) {
                 </div>
 
                 <div class="cc-meta">
-                    This Instance ID matches more than one known set, pick the one you actually have:
+                    This Instance ID matches more than one known<span translate="no">&nbsp;set</span>, pick the one you actually have:
                 </div>
 
                 <div class="multi-options">
@@ -1160,7 +1160,7 @@ function showEmptyState() {
         <div class="empty-state">
             <img src="logo.png" alt="" class="empty-icon">
             <h4>Nothing here yet</h4>
-            <p>Paste your <span translate="no">export</span> on the left and hit "<span class="nowrap" translate="no">Create the list</span>".</p>
+            <p>Paste your <span translate="no">export</span> on the left and hit "<span class="nowrap">Create the list</span>".</p>
         </div>
     `;
 }
@@ -2010,7 +2010,7 @@ bundleForm.addEventListener("submit", async (event) => {
     progressFill.style.width = "0%";
 
     submitBtn.disabled = false;
-    submitBtn.textContent = "Submit the whole set";
+    submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
     showToast(
         skippedCount > 0
