@@ -1160,7 +1160,7 @@ function showEmptyState() {
         <div class="empty-state">
             <img src="logo.png" alt="" class="empty-icon">
             <h4>Nothing here yet</h4>
-            <p>Paste your <span translate="no">export</span> on the left and hit "<span class="nowrap">Create the list</span>".</p>
+            <p>Paste your<span translate="no">&nbsp;export&nbsp;</span>on the left and hit "<span class="nowrap">Create the list</span>".</p>
         </div>
     `;
 }
@@ -1280,7 +1280,7 @@ function buildCreditLine(setName, creator, link, suffix = "") {
         case "plain":
             return `${setName} by ${creator}: ${link}${suffix}`;
         case "creators-list":
-            return `${setName} [download](${link})${suffix}`;
+            return `[${setName}](${link})${suffix}`;
         case "markdown":
         default:
             return `${setName} (${creator}), [download here](${link})${suffix}`;
