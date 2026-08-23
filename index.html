@@ -41,7 +41,7 @@
                     </button>
                 </div>
 
-                <p class="card-hint">In <span translate="no">Sims 4 Tray Importer</span>: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
+                <p class="card-hint">In<span translate="no">&nbsp;Sims 4 Tray Importer&nbsp;</span>: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click →<span translate="no">&nbsp;Info&nbsp;</span>→ Copy → Paste it below ↓</p>
 
                 <textarea
                     id="ccInput"
@@ -57,7 +57,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 <div class="input-footer">
                     <span id="characterCount">0 characters</span>
 
-                    <button id="generateButton" class="primary-button" translate="no">
+                    <button id="generateButton" class="primary-button">
                         Create the list
                     </button>
                 </div>
@@ -96,7 +96,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         <img src="logo.png" alt="" class="empty-icon">
                         <h4>Nothing here yet</h4>
                         <p>
-                            Paste your export on the left and hit "<span class="nowrap" translate="no">Create the list</span>".
+                            Paste your <span translate="no">export</span> on the left and hit "<span class="nowrap">Create the list</span>".
                         </p>
                     </div>
 
@@ -104,7 +104,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <div class="output-footer">
 
-                    <button id="copyButton" class="secondary-button" disabled translate="no">
+                    <button id="copyButton" class="secondary-button" disabled>
                         ⧉ Copy the list
                     </button>
 
@@ -132,7 +132,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 <div>
                     <h4>You spot it, we add it</h4>
                     <p>
-                        Missing a set, link, or creator? Submit it and we'll add it after a quick check.
+                        Missing a<span translate="no">&nbsp;set</span>, link, or creator? Submit it and we'll add it after a quick check.
                     </p>
                 </div>
             </div>
@@ -203,7 +203,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
         <div class="toolbox-section">
             <h4 translate="no">Bundle & Link</h4>
-            <p>Select several unknown items from the same set and submit them together in a bundle.
+            <p>Select several unknown items from the same<span translate="no">&nbsp;set</span> and submit them together in a bundle.
             </p> <p>They will share the same link & Creator.</p>
             <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false" translate="no">
                 <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
@@ -227,7 +227,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         </div>
 
         <div class="toolbox-section">
-            <p>Paste your <span translate="no">S4TI</span> export, get a credit list with links.</p>
+            <p>Paste your <span translate="no">S4TI export</span>, get a credit list with links.</p>
         </div>
 
         <div class="toolbox-section">
@@ -247,11 +247,11 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             </div>
             <div class="legend-item">
                 <span class="cc-status multiple" translate="no">🔀 multiple matches</span>
-                <p>Several known candidates share this ID (likely an override), pick yours.</p>
+                <p>Several known candidates share this ID (likely an<span translate="no">&nbsp;override</span>), pick yours.</p>
             </div>
             <div class="legend-item">
                 <span class="cc-status missing" translate="no">⚠ link missing</span>
-                <p>The set is identified, but there's no link yet.</p>
+                <p>The<span translate="no">&nbsp;set&nbsp;</span>is identified, but there's no link yet.</p>
             </div>
             <div class="legend-item">
                 <span class="cc-status unknown" translate="no">? unknown</span>
@@ -261,9 +261,9 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
         <div class="toolbox-section">
             <h4>Are you a CC creator?</h4>
-            <p>Submit every item in one of your sets at once, instead of one by one.</p>
-            <button id="bundleToggle" class="secondary-button" type="button" translate="no">
-                Submit a whole set
+            <p>Submit every item in one of your<span translate="no">&nbsp;sets</span> at once, instead of one by one.</p>
+            <button id="bundleToggle" class="secondary-button" type="button">
+                Submit a whole<span translate="no">&nbsp;set</span>
             </button>
         </div>
 
@@ -300,7 +300,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 </label>
 
                 <div id="partHint" class="part-hint" style="display: none;">
-                    ⚠ This set already has known parts: <span id="partHintList"></span>. Specify which one this/these items belong to.
+                    ⚠ This<span translate="no">&nbsp;set&nbsp;</span>already has known parts: <span id="partHintList"></span>. Specify which one this/these items belong to.
                 </div>
 
                 <label>
@@ -340,19 +340,19 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         <div class="modal-box">
 
             <div class="modal-header">
-                <h3>Submit a whole set</h3>
+                <h3>Submit a whole<span translate="no">&nbsp;set</span></h3>
                 <button id="closeBundle" class="modal-close" type="button">✕</button>
             </div>
 
             <p class="modal-item-name">
-                Is your CC part of this list already? Paste your own <span translate="no">S4TI</span> export
-                for the set, add one link, and we'll register every item in it at once.
+                Is your CC part of this list already? Paste your own <span translate="no">S4TI export</span>
+                for the<span translate="no">&nbsp;set</span>, add one link, and we'll register every item in it at once.
             </p>
 
             <form id="bundleForm">
 
                 <label>
-                    Your <span translate="no">S4TI</span> export for this set *
+                    Your <span translate="no">S4TI export</span> for this set *
                     <textarea id="bundleExport" required placeholder="[YourName_SetName_Item1]
 Instance: 0x00000000!0x...
 
@@ -366,7 +366,7 @@ Instance: 0x00000000!0x..."></textarea>
                 </label>
 
                 <div id="bundlePartHint" class="part-hint" style="display: none;">
-                    ⚠ This set already has known parts: <span id="bundlePartHintList"></span>. Specify which one this/these items belong to.
+                    ⚠ This<span translate="no">&nbsp;set&nbsp;</span>already has known parts: <span id="bundlePartHintList"></span>. Specify which one this/these items belong to.
                 </div>
 
                 <label>
@@ -388,12 +388,12 @@ Instance: 0x00000000!0x..."></textarea>
                 </label>
 
                 <p class="modal-disclaimer">
-                    Every item found in your export will be submitted for validation
-                    under this same set and link.
+                    Every item found in your <span translate="no">export</span> will be submitted for validation
+                    under this same<span translate="no">&nbsp;set</span> and link.
                 </p>
 
-                <button type="submit" class="primary-button modal-submit" translate="no">
-                    Submit the whole set
+                <button type="submit" class="primary-button modal-submit">
+                    Submit the whole<span translate="no">&nbsp;set</span>
                 </button>
 
                 <div id="bundleProgress" class="progress-bar">
