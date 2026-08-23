@@ -776,7 +776,7 @@ function generateList() {
             <div class="empty-state">
                 <div class="empty-icon">?</div>
                 <h4>No CC found</h4>
-                <p>No usable CC entries were found in this S4TI export.</p>
+                <p>No usable CC entries were found in this <span translate="no">S4TI export</span>.</p>
             </div>
         `;
 
@@ -844,7 +844,7 @@ function renderResults(items) {
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
+                    <span translate="no">by <span class="cc-creator">${escapeHTML(group.creator)}</span></span>
                 </div>
 
                 ${
@@ -858,7 +858,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <summary>View ${instanceCount(group.items)} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -886,7 +886,7 @@ function renderResults(items) {
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
+                    <span translate="no">by <span class="cc-creator">${escapeHTML(group.creator)}</span></span>
                 </div>
 
                 ${
@@ -898,7 +898,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <summary>View ${instanceCount(group.items)} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -925,7 +925,7 @@ function renderResults(items) {
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
+                    <span translate="no">by <span class="cc-creator">${escapeHTML(group.creator)}</span></span>
                 </div>
 
                 <button
@@ -942,7 +942,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <summary>View ${instanceCount(group.items)} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1040,7 +1040,7 @@ function renderResults(items) {
                 ${tagRowHTML}
 
                 <details class="cc-details">
-                    <summary>View the ${instanceCount(group.items)} items</summary>
+                    <summary>View ${instanceCount(group.items)} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1160,7 +1160,7 @@ function showEmptyState() {
         <div class="empty-state">
             <img src="logo.png" alt="" class="empty-icon">
             <h4>Nothing here yet</h4>
-            <p>Paste your export on the left and hit "<span class="nowrap">Create the list</span>".</p>
+            <p>Paste your <span translate="no">export</span> on the left and hit "<span class="nowrap" translate="no">Create the list</span>".</p>
         </div>
     `;
 }
