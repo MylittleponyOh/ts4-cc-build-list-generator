@@ -41,7 +41,7 @@
                     </button>
                 </div>
 
-                <p class="card-hint">In Sims 4 Tray Importer: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
+                <p class="card-hint">In S4TI: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
 
                 <textarea
                     id="ccInput"
@@ -83,6 +83,9 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         </span>
                         <button id="refreshButton" class="text-button refresh-button" type="button" title="Re-check the database">
                             ⟳ Refresh
+                        </button>
+                        <button id="settingsToggle" class="icon-button-small" type="button" title="Preferences">
+                            ⋮
                         </button>
                     </div>
                 </div>
@@ -153,11 +156,6 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         <p>The List | 2026</p>
     </footer>
 
-
-    <!-- SETTINGS (preferences icon, top-right) -->
-    <button id="settingsToggle" class="settings-fab" type="button" title="Preferences">
-        ⋮
-    </button>
 
     <div id="settingsPanel" class="settings-panel">
 
@@ -262,7 +260,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         </div>
 
         <div class="toolbox-section">
-            <h4>Are you a CC creator?</h4>
+            <h4>Are you a creator?</h4>
             <p>Submit every item in one of your sets at once, instead of one by one.</p>
             <button id="bundleToggle" class="secondary-button" type="button">
                 Submit a whole set
