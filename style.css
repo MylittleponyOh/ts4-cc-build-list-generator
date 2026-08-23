@@ -1255,6 +1255,11 @@ button:disabled {
 }
 
 
+.format-option:has(input:checked) .format-compat {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+
 .format-example {
     margin-top: 4px;
 
@@ -1270,11 +1275,34 @@ button:disabled {
 }
 
 
+.format-compat {
+    display: block;
+
+    font-size: 9.5px;
+    font-style: italic;
+    color: var(--text-faint);
+
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+
+    transition: max-height 0.15s ease, opacity 0.15s ease;
+}
+
+
 .format-option:hover .format-example,
 .format-option:has(input:checked) .format-example {
     max-height: 40px;
     opacity: 1;
     margin-top: 4px;
+}
+
+
+.format-option:hover .format-compat,
+.format-option:has(input:checked) .format-compat {
+    max-height: 20px;
+    opacity: 1;
+    margin-top: 3px;
 }
 
 
