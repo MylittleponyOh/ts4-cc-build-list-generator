@@ -807,7 +807,7 @@ function wrapStatusSection(statusClass, badgeText, count, innerHTML) {
     return `
         <details class="status-group">
             <summary class="status-group-summary">
-                <span class="cc-status ${statusClass}">${badgeText}</span>
+                <span class="cc-status ${statusClass}" translate="no">${badgeText}</span>
                 <span class="status-group-count">${count}</span>
             </summary>
             <div class="status-group-body">
@@ -830,7 +830,7 @@ function renderResults(items) {
     const pendingHTML = pendingGroups.map((group) => {
 
         const itemsListHTML = group.items
-            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
@@ -839,12 +839,12 @@ function renderResults(items) {
         return `
             <div class="cc-item pending">
                 <div class="cc-item-row">
-                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                    <span class="cc-status pending">⏳ pending (${group.items.length})</span>
+                    <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status pending" translate="no">⏳ pending (${group.items.length})</span>
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
                 </div>
 
                 ${
@@ -872,7 +872,7 @@ function renderResults(items) {
     const recognizedHTML = recognizedGroups.map((group) => {
 
         const itemsListHTML = group.items
-            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
         const safeLink = sanitizeUrl(group.link);
@@ -881,12 +881,12 @@ function renderResults(items) {
         return `
             <div class="cc-item recognized">
                 <div class="cc-item-row">
-                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                    <span class="cc-status recognized">✓ recognized (${group.items.length})</span>
+                    <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status recognized" translate="no">✓ recognized (${group.items.length})</span>
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
                 </div>
 
                 ${
@@ -912,7 +912,7 @@ function renderResults(items) {
     const missingHTML = missingGroups.map((group) => {
 
         const itemsListHTML = group.items
-            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
@@ -920,17 +920,18 @@ function renderResults(items) {
         return `
             <div class="cc-item missing-link">
                 <div class="cc-item-row">
-                    <span class="cc-name">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
-                    <span class="cc-status missing">⚠ link missing (${group.items.length})</span>
+                    <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status missing" translate="no">⚠ link missing (${group.items.length})</span>
                 </div>
 
                 <div class="cc-meta">
-                    by <span class="cc-creator">${escapeHTML(group.creator)}</span>
+                    by <span class="cc-creator" translate="no">${escapeHTML(group.creator)}</span>
                 </div>
 
                 <button
                     class="propose-button"
                     type="button"
+                    translate="no"
                     data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
                     data-setname="${escapeHTML(group.setName)}"
                     data-creator="${escapeHTML(group.creator)}"
@@ -959,7 +960,7 @@ function renderResults(items) {
         const currentSelection = multipleSelections[group.instance];
 
         const itemsListHTML = group.items
-            .map((it) => `<li>${escapeHTML(formatCCName(it.name))}</li>`)
+            .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
             .join("");
 
         const optionsHTML = group.candidates
@@ -1006,8 +1007,8 @@ function renderResults(items) {
         return `
             <div class="cc-item multiple">
                 <div class="cc-item-row">
-                    <span class="cc-name">${escapeHTML(formatCCName(group.items[0].name))}</span>
-                    <span class="cc-status multiple">🔀 multiple matches (${group.items.length})</span>
+                    <span class="cc-name" translate="no">${escapeHTML(formatCCName(group.items[0].name))}</span>
+                    <span class="cc-status multiple" translate="no">🔀 multiple matches (${group.items.length})</span>
                 </div>
 
                 <div class="cc-meta">
@@ -1032,7 +1033,7 @@ function renderResults(items) {
 
                 ${
                     noneChecked
-                        ? `<button class="propose-button" type="button" data-instances="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
+                        ? `<button class="propose-button" type="button" translate="no" data-instances="${escapeHTML(group.instance)}" data-setname="" data-creator="">+ Submit a link</button>`
                         : ""
                 }
 
@@ -1053,8 +1054,8 @@ function renderResults(items) {
     const claimedHTML = claimedItems.map((item) => `
         <div class="cc-item claimed">
             <div class="cc-item-row">
-                <span class="cc-name">${escapeHTML(formatCCName(item.name))}</span>
-                <span class="cc-status claimed">🔒 claimed</span>
+                <span class="cc-name" translate="no">${escapeHTML(formatCCName(item.name))}</span>
+                <span class="cc-status claimed" translate="no">🔒 claimed</span>
             </div>
 
             <div class="cc-meta cc-meta-unknown">
@@ -1082,7 +1083,7 @@ function renderResults(items) {
         unknownHTML += `
             <div class="bundle-bar">
                 <span>${selectedCount} item${selectedCount === 1 ? "" : "s"} selected</span>
-                <button id="bundleLinkButton" class="bundle-link-button" type="button" ${selectedCount === 0 ? "disabled" : ""}>
+                <button id="bundleLinkButton" class="bundle-link-button" type="button" translate="no" ${selectedCount === 0 ? "disabled" : ""}>
                     Link selected
                 </button>
             </div>
@@ -1109,9 +1110,9 @@ function renderResults(items) {
                                 data-bundle-name="${escapeHTML(displayName)}"
                                 ${isChecked ? "checked" : ""}
                             >
-                            <span class="cc-name">${escapeHTML(displayName)}</span>
+                            <span class="cc-name" translate="no">${escapeHTML(displayName)}</span>
                         </label>
-                        <span class="cc-status unknown">? unknown</span>
+                        <span class="cc-status unknown" translate="no">? unknown</span>
                     </div>
 
                     <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
@@ -1122,8 +1123,8 @@ function renderResults(items) {
         return `
             <div class="cc-item unknown">
                 <div class="cc-item-row">
-                    <span class="cc-name">${escapeHTML(displayName)}</span>
-                    <span class="cc-status unknown">? unknown</span>
+                    <span class="cc-name" translate="no">${escapeHTML(displayName)}</span>
+                    <span class="cc-status unknown" translate="no">? unknown</span>
                 </div>
 
                 <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
@@ -1131,6 +1132,7 @@ function renderResults(items) {
                 <button
                     class="propose-button"
                     type="button"
+                    translate="no"
                     data-instances="${escapeHTML(instances.join(","))}"
                     data-setname=""
                     data-creator=""
