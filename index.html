@@ -15,7 +15,7 @@
     <header class="site-header">
         <div class="logo">
             <img src="logo.png" alt="The List" class="logo-mark">
-            <h2>Build. List. Share.</h2>
+            <h2 translate="no">Build. List. Share.</h2>
         </div>
     </header>
 
@@ -34,14 +34,14 @@
                             <img src="mark.png" alt="" class="step-mark">
                             <span class="step-number">01</span>
                         </span>
-                        <h3>Your S4TI Export</h3>
+                        <h3 translate="no">Your S4TI Export</h3>
                     </div>
-                    <button id="clearButton" class="text-button">
+                    <button id="clearButton" class="text-button" translate="no">
                         Clear
                     </button>
                 </div>
 
-                <p class="card-hint">In S4TI: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
+                <p class="card-hint">In <span translate="no">Sims 4 Tray Importer</span>: select your saved build → go into the CC Tab → Select all the CC you want to list → Right-click → Info → Copy → Paste it below ↓</p>
 
                 <textarea
                     id="ccInput"
@@ -57,7 +57,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 <div class="input-footer">
                     <span id="characterCount">0 characters</span>
 
-                    <button id="generateButton" class="primary-button">
+                    <button id="generateButton" class="primary-button" translate="no">
                         Create the list
                     </button>
                 </div>
@@ -74,14 +74,14 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                             <img src="mark.png" alt="" class="step-mark">
                             <span class="step-number">02</span>
                         </span>
-                        <h3>Your CC List</h3>
+                        <h3 translate="no">Your CC List</h3>
                     </div>
 
                     <div class="card-header-right">
-                        <span id="itemCount" class="count-badge">
+                        <span id="itemCount" class="count-badge" translate="no">
                             0 CC
                         </span>
-                        <button id="refreshButton" class="text-button refresh-button" type="button" title="Re-check the database">
+                        <button id="refreshButton" class="text-button refresh-button" type="button" title="Re-check the database" translate="no">
                             ⟳ Refresh
                         </button>
                         <button id="settingsToggle" class="icon-button-small" type="button" title="Preferences">
@@ -96,7 +96,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                         <img src="logo.png" alt="" class="empty-icon">
                         <h4>Nothing here yet</h4>
                         <p>
-                            Paste your export on the left and hit "<span class="nowrap">Create the list</span>".
+                            Paste your export on the left and hit "<span class="nowrap" translate="no">Create the list</span>".
                         </p>
                     </div>
 
@@ -104,7 +104,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
                 <div class="output-footer">
 
-                    <button id="copyButton" class="secondary-button" disabled>
+                    <button id="copyButton" class="secondary-button" disabled translate="no">
                         ⧉ Copy the list
                     </button>
 
@@ -120,9 +120,9 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             <div class="info-card">
                 <span class="info-icon"></span>
                 <div>
-                    <h4>Smart Match</h4>
+                    <h4 translate="no">Smart Match</h4>
                     <p>
-                        Recognized items are grouped by set. A pile of unknowns from the same set? Group them yourself with Bundle & Link.
+                        Recognized items are grouped by set. A pile of unknowns from the same set? Group them yourself with <span translate="no">Bundle & Link</span>.
                     </p>
                 </div>
             </div>
@@ -140,7 +140,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             <div class="info-card">
                 <span class="info-icon"></span>
                 <div>
-                    <h4>Tag & Flag</h4>
+                    <h4 translate="no">Tag & Flag</h4>
                     <p>
                         One toggle, zero obligation.
                     </p>
@@ -153,7 +153,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
 
 
     <footer>
-        <p>The List | 2026</p>
+        <p translate="no">The List | 2026</p>
     </footer>
 
 
@@ -193,19 +193,19 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         </div>
 
         <div class="toolbox-section">
-            <h4>Tag & Flag</h4>
+            <h4 translate="no">Tag & Flag</h4>
             <p>Add an optional category to each result.</p>
-            <button id="tagFlagToggle" class="tag-toggle" type="button" aria-pressed="false">
+            <button id="tagFlagToggle" class="tag-toggle" type="button" aria-pressed="false" translate="no">
                 <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
                 Tag & Flag
             </button>
         </div>
 
         <div class="toolbox-section">
-            <h4>Bundle & Link</h4>
+            <h4 translate="no">Bundle & Link</h4>
             <p>Select several unknown items from the same set and submit them together in a bundle.
             </p> <p>They will share the same link & Creator.</p>
-            <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false">
+            <button id="bundleModeToggle" class="tag-toggle" type="button" aria-pressed="false" translate="no">
                 <span class="tag-toggle-track"><span class="tag-toggle-thumb"></span></span>
                 Bundle & Link
             </button>
@@ -227,42 +227,42 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         </div>
 
         <div class="toolbox-section">
-            <p>Paste your S4TI export, get a credit list with links.</p>
+            <p>Paste your <span translate="no">S4TI</span> export, get a credit list with links.</p>
         </div>
 
         <div class="toolbox-section">
             <h4>What the statuses mean</h4>
 
             <div class="legend-item">
-                <span class="cc-status recognized">✓ recognized</span>
+                <span class="cc-status recognized" translate="no">✓ recognized</span>
                 <p>In the database, with a working link.</p>
             </div>
             <div class="legend-item">
-                <span class="cc-status pending">⏳ pending</span>
+                <span class="cc-status pending" translate="no">⏳ pending</span>
                 <p>You submitted a link for this, awaiting validation.</p>
             </div>
             <div class="legend-item">
-                <span class="cc-status claimed">🔒 claimed</span>
+                <span class="cc-status claimed" translate="no">🔒 claimed</span>
                 <p>Already reported by someone else, awaiting validation.</p>
             </div>
             <div class="legend-item">
-                <span class="cc-status multiple">🔀 multiple matches</span>
+                <span class="cc-status multiple" translate="no">🔀 multiple matches</span>
                 <p>Several known candidates share this ID (likely an override), pick yours.</p>
             </div>
             <div class="legend-item">
-                <span class="cc-status missing">⚠ link missing</span>
+                <span class="cc-status missing" translate="no">⚠ link missing</span>
                 <p>The set is identified, but there's no link yet.</p>
             </div>
             <div class="legend-item">
-                <span class="cc-status unknown">? unknown</span>
+                <span class="cc-status unknown" translate="no">? unknown</span>
                 <p>Not in the database at all yet.</p>
             </div>
         </div>
 
         <div class="toolbox-section">
-            <h4>Are you a creator?</h4>
+            <h4>Are you a CC creator?</h4>
             <p>Submit every item in one of your sets at once, instead of one by one.</p>
-            <button id="bundleToggle" class="secondary-button" type="button">
+            <button id="bundleToggle" class="secondary-button" type="button" translate="no">
                 Submit a whole set
             </button>
         </div>
@@ -273,7 +273,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
         </div>
 
         <div class="toolbox-section">
-            <button id="adminToggle" class="text-button" type="button">
+            <button id="adminToggle" class="text-button" type="button" translate="no">
                 View my submissions (local test)
             </button>
         </div>
@@ -295,7 +295,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             <form id="submitForm">
 
                 <label>
-                    Set Name *
+                    <span translate="no">Set Name</span> *
                     <input type="text" id="fieldSetName" required placeholder="Ex: Cozy Cabin">
                 </label>
 
@@ -304,7 +304,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                 </div>
 
                 <label>
-                    Part (optional)
+                    <span translate="no">Part</span> (optional)
                     <input type="text" id="fieldPart" placeholder="Ex: Part 2">
                 </label>
 
@@ -325,7 +325,7 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
                     This suggestion will be submitted for validation before being added to the public database. Once approved, no one has to search for this item again.
                 </p>
 
-                <button type="submit" class="primary-button modal-submit">
+                <button type="submit" class="primary-button modal-submit" translate="no">
                     Submit suggestion
                 </button>
 
@@ -345,14 +345,14 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             </div>
 
             <p class="modal-item-name">
-                Is your CC part of this list already? Paste your own S4TI export
+                Is your CC part of this list already? Paste your own <span translate="no">S4TI</span> export
                 for the set, add one link, and we'll register every item in it at once.
             </p>
 
             <form id="bundleForm">
 
                 <label>
-                    Your S4TI export for this set *
+                    Your <span translate="no">S4TI</span> export for this set *
                     <textarea id="bundleExport" required placeholder="[YourName_SetName_Item1]
 Instance: 0x00000000!0x...
 
@@ -361,7 +361,7 @@ Instance: 0x00000000!0x..."></textarea>
                 </label>
 
                 <label>
-                    Set Name *
+                    <span translate="no">Set Name</span> *
                     <input type="text" id="bundleSetName" required placeholder="Ex: Nocturne">
                 </label>
 
@@ -370,7 +370,7 @@ Instance: 0x00000000!0x..."></textarea>
                 </div>
 
                 <label>
-                    Part (optional)
+                    <span translate="no">Part</span> (optional)
                     <input type="text" id="bundlePart" placeholder="Ex: Part 2">
                 </label>
 
@@ -392,7 +392,7 @@ Instance: 0x00000000!0x..."></textarea>
                     under this same set and link.
                 </p>
 
-                <button type="submit" class="primary-button modal-submit">
+                <button type="submit" class="primary-button modal-submit" translate="no">
                     Submit the whole set
                 </button>
 
