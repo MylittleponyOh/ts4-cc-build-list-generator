@@ -289,15 +289,18 @@ function findPrefillSuggestion(setName, part) {
     return { creator: matches[0].creator, link: matches[0].link };
 }
 
-function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput) {
+function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput, prefillHintBox) {
 
     function checkSuggestion() {
 
         const suggestion = findPrefillSuggestion(setNameInput.value, partInput.value);
 
         if (!suggestion) {
+            prefillHintBox.style.display = "none";
             return;
         }
+
+        prefillHintBox.style.display = "block";
 
         // Only fills blank fields — never fights with something the
         // person already typed or edited themselves.
@@ -318,14 +321,16 @@ wireAutoFillSuggestion(
     fieldSetNameInput,
     fieldPartInput,
     document.getElementById("fieldCreator"),
-    document.getElementById("fieldLink")
+    document.getElementById("fieldLink"),
+    document.getElementById("prefillHint")
 );
 
 wireAutoFillSuggestion(
     bundleSetNameInput,
     bundlePartInput,
     document.getElementById("bundleCreator"),
-    document.getElementById("bundleLink")
+    document.getElementById("bundleLink"),
+    document.getElementById("bundlePrefillHint")
 );
 
 
@@ -1676,6 +1681,7 @@ function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, nam
     document.getElementById("fieldCreator").value = creatorGuess || "";
 
     partHint.style.display = "none";
+    document.getElementById("prefillHint").style.display = "none";
 
     if (setNameGuess) {
         fieldSetNameInput.dispatchEvent(new Event("input"));
@@ -2008,6 +2014,7 @@ function openBundleModal() {
     document.getElementById("bundleProgress").classList.remove("show");
     document.getElementById("bundleProgressFill").style.width = "0%";
     bundlePartHint.style.display = "none";
+    document.getElementById("bundlePrefillHint").style.display = "none";
     bundleModal.classList.add("show");
 }
 
