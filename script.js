@@ -187,38 +187,40 @@ function findKnownParts(setNameQuery) {
     return knownParts;
 }
 
-function wirePartHint(setNameInput, hintBox, hintListSpan, partInput) {
+function wirePartHint(setNameInput, hintBox, partInput) {
 
     setNameInput.addEventListener("input", () => {
 
         const knownParts = findKnownParts(setNameInput.value);
 
-        if (knownParts.size > 1) {
+        if (knownParts.size >= 1) {
 
-            hintListSpan.textContent = Array.from(knownParts).join(", ");
+            const partsList = Array.from(knownParts).join(", ");
+            const label = knownParts.size === 1 ? "a known part" : "known parts";
+
+            hintBox.innerHTML = `⚠ This<span translate="no">&nbsp;set&nbsp;</span>already has ${label}: <span translate="no">${escapeHTML(partsList)}</span>. Specify which one this/these items belong to.`;
             hintBox.style.display = "block";
             partInput.focus();
 
         } else {
 
             hintBox.style.display = "none";
+            hintBox.innerHTML = "";
         }
     });
 }
 
 const fieldSetNameInput = document.getElementById("fieldSetName");
 const partHint = document.getElementById("partHint");
-const partHintList = document.getElementById("partHintList");
 const fieldPartInput = document.getElementById("fieldPart");
 
-wirePartHint(fieldSetNameInput, partHint, partHintList, fieldPartInput);
+wirePartHint(fieldSetNameInput, partHint, fieldPartInput);
 
 const bundleSetNameInput = document.getElementById("bundleSetName");
 const bundlePartHint = document.getElementById("bundlePartHint");
-const bundlePartHintList = document.getElementById("bundlePartHintList");
 const bundlePartInput = document.getElementById("bundlePart");
 
-wirePartHint(bundleSetNameInput, bundlePartHint, bundlePartHintList, bundlePartInput);
+wirePartHint(bundleSetNameInput, bundlePartHint, bundlePartInput);
 
 // ------------------------------------------
 // AUTO-FILL SUGGESTION (Creator + Link)
@@ -254,11 +256,12 @@ function findPrefillSuggestion(setName, part) {
                 return;
             }
 
-            if (knownParts.size > 1) {
+            if (knownParts.size >= 1) {
 
-                // This set has multiple known parts — only suggest once
-                // the typed Part exactly matches one of them. Otherwise
-                // there's no safe way to know which link applies.
+                // This set has at least one known part — only suggest
+                // once the typed Part exactly matches it. Otherwise
+                // there's no safe way to know this new item belongs to
+                // the same part, rather than an undiscovered one.
                 if (!typedPart) {
                     return;
                 }
