@@ -334,8 +334,29 @@ function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput
 
     // Real user edits (not our own programmatic prefill, which never
     // fires "input") clear the highlight — the value is now theirs.
-    creatorInput.addEventListener("input", () => creatorInput.classList.remove("field-prefilled"));
-    linkInput.addEventListener("input", () => linkInput.classList.remove("field-prefilled"));
+    creatorInput.addEventListener("input", () => {
+
+        creatorInput.classList.remove("field-prefilled");
+
+        // If the Creator half of the suggestion looks wrong, the Link
+        // half came from the same guess and can't be trusted either —
+        // but only reset it if it's still untouched, never overwrite
+        // something the person already edited themselves.
+        if (linkInput.classList.contains("field-prefilled")) {
+            linkInput.value = "";
+            linkInput.classList.remove("field-prefilled");
+        }
+    });
+
+    linkInput.addEventListener("input", () => {
+
+        linkInput.classList.remove("field-prefilled");
+
+        if (creatorInput.classList.contains("field-prefilled")) {
+            creatorInput.value = "";
+            creatorInput.classList.remove("field-prefilled");
+        }
+    });
 }
 
 wireAutoFillSuggestion(
