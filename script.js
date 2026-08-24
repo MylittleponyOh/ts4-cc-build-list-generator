@@ -297,24 +297,42 @@ function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput
 
         if (!suggestion) {
             prefillHintBox.style.display = "none";
+            prefillHintBox.innerHTML = "";
             return;
         }
 
+        const safeLink = sanitizeUrl(suggestion.link);
+
+        prefillHintBox.innerHTML = `✓ Found a match in the database, is this really it? Double-check before sending.${
+            safeLink
+                ? ` <a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="prefill-hint-link">View link ↗</a>`
+                : ""
+        }`;
         prefillHintBox.style.display = "block";
 
         // Only fills blank fields — never fights with something the
-        // person already typed or edited themselves.
+        // person already typed or edited themselves. The pale green
+        // highlight marks exactly which fields came from the
+        // suggestion, and clears the moment the person edits one
+        // themselves (see the manual-edit listeners below).
         if (!creatorInput.value.trim()) {
             creatorInput.value = suggestion.creator;
+            creatorInput.classList.add("field-prefilled");
         }
 
         if (!linkInput.value.trim()) {
             linkInput.value = suggestion.link;
+            linkInput.classList.add("field-prefilled");
         }
     }
 
     setNameInput.addEventListener("input", checkSuggestion);
     partInput.addEventListener("input", checkSuggestion);
+
+    // Real user edits (not our own programmatic prefill, which never
+    // fires "input") clear the highlight — the value is now theirs.
+    creatorInput.addEventListener("input", () => creatorInput.classList.remove("field-prefilled"));
+    linkInput.addEventListener("input", () => linkInput.classList.remove("field-prefilled"));
 }
 
 wireAutoFillSuggestion(
@@ -1682,6 +1700,8 @@ function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, nam
 
     partHint.style.display = "none";
     document.getElementById("prefillHint").style.display = "none";
+    document.getElementById("fieldCreator").classList.remove("field-prefilled");
+    document.getElementById("fieldLink").classList.remove("field-prefilled");
 
     if (setNameGuess) {
         fieldSetNameInput.dispatchEvent(new Event("input"));
@@ -2015,6 +2035,8 @@ function openBundleModal() {
     document.getElementById("bundleProgressFill").style.width = "0%";
     bundlePartHint.style.display = "none";
     document.getElementById("bundlePrefillHint").style.display = "none";
+    document.getElementById("bundleCreator").classList.remove("field-prefilled");
+    document.getElementById("bundleLink").classList.remove("field-prefilled");
     bundleModal.classList.add("show");
 }
 
