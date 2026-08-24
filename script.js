@@ -220,6 +220,114 @@ const bundlePartInput = document.getElementById("bundlePart");
 
 wirePartHint(bundleSetNameInput, bundlePartHint, bundlePartHintList, bundlePartInput);
 
+// ------------------------------------------
+// AUTO-FILL SUGGESTION (Creator + Link)
+// ------------------------------------------
+// If the typed Set Name (and Part, when relevant) unambiguously matches
+// what's already in the verified database, suggest the known Creator
+// and Link — still fully editable, and the person's own review at
+// submission time doesn't go away. Never overwrites a field the person
+// already filled in themselves, and never guesses when the database
+// itself doesn't agree on a single answer.
+
+function findPrefillSuggestion(setName, part) {
+
+    const typedSetName = setName.trim().toLowerCase();
+
+    if (!typedSetName) {
+        return null;
+    }
+
+    const knownParts = findKnownParts(setName);
+    const typedPart = (part || "").trim().toLowerCase();
+
+    const matches = [];
+
+    Object.values(DATABASE_INDEX).forEach((candidates) => {
+        candidates.forEach((candidate) => {
+
+            if (!candidate.setName || candidate.setName.trim().toLowerCase() !== typedSetName) {
+                return;
+            }
+
+            if (!candidate.link || !candidate.link.trim()) {
+                return;
+            }
+
+            if (knownParts.size > 1) {
+
+                // This set has multiple known parts — only suggest once
+                // the typed Part exactly matches one of them. Otherwise
+                // there's no safe way to know which link applies.
+                if (!typedPart) {
+                    return;
+                }
+
+                if (!candidate.part || candidate.part.trim().toLowerCase() !== typedPart) {
+                    return;
+                }
+            }
+
+            matches.push(candidate);
+        });
+    });
+
+    if (matches.length === 0) {
+        return null;
+    }
+
+    // If the database itself has conflicting creator/link pairs under
+    // this same set name, that's a real ambiguity — don't guess.
+    const uniqueCombos = new Set(
+        matches.map((m) => `${m.creator.trim().toLowerCase()}::${m.link.trim()}`)
+    );
+
+    if (uniqueCombos.size !== 1) {
+        return null;
+    }
+
+    return { creator: matches[0].creator, link: matches[0].link };
+}
+
+function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput) {
+
+    function checkSuggestion() {
+
+        const suggestion = findPrefillSuggestion(setNameInput.value, partInput.value);
+
+        if (!suggestion) {
+            return;
+        }
+
+        // Only fills blank fields — never fights with something the
+        // person already typed or edited themselves.
+        if (!creatorInput.value.trim()) {
+            creatorInput.value = suggestion.creator;
+        }
+
+        if (!linkInput.value.trim()) {
+            linkInput.value = suggestion.link;
+        }
+    }
+
+    setNameInput.addEventListener("input", checkSuggestion);
+    partInput.addEventListener("input", checkSuggestion);
+}
+
+wireAutoFillSuggestion(
+    fieldSetNameInput,
+    fieldPartInput,
+    document.getElementById("fieldCreator"),
+    document.getElementById("fieldLink")
+);
+
+wireAutoFillSuggestion(
+    bundleSetNameInput,
+    bundlePartInput,
+    document.getElementById("bundleCreator"),
+    document.getElementById("bundleLink")
+);
+
 
 // ------------------------------------------
 // GLOBAL CLAIMED INDEX (Form responses Sheet)
@@ -1257,9 +1365,28 @@ copyFormatRadios.forEach((radio) => {
 
 // Builds one credit line according to the currently selected format.
 // `link` should already be sanitized (or falsy if none/invalid).
-function buildCreditLine(setName, creator, link, suffix = "") {
+// `hideMissingLinkNote`: only used by the "missing" status, where not
+// having a link yet is the expected, normal state — no need to flag it
+// in the copied list. Left false (default) for recognized/pending, so a
+// genuinely malformed link there still shows as a real data problem.
+function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNote = false) {
 
     if (!link) {
+
+        if (hideMissingLinkNote) {
+
+            switch (copyFormat) {
+                case "name-link":
+                    return `${creator} **${setName}**${suffix}`;
+                case "plain":
+                    return `${setName} by ${creator}${suffix}`;
+                case "creators-list":
+                    return `${setName}${suffix}`;
+                case "markdown":
+                default:
+                    return `${setName} (${creator})${suffix}`;
+            }
+        }
 
         switch (copyFormat) {
             case "name-link":
@@ -1376,7 +1503,7 @@ async function copyResult() {
         trackCreator(group.creator);
 
         rawLines.push({
-            text: buildCreditLine(displaySetName, group.creator, ""),
+            text: buildCreditLine(displaySetName, group.creator, "", "", true),
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
