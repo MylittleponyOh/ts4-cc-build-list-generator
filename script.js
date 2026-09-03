@@ -2272,7 +2272,7 @@ function renderAdminList() {
             <div class="admin-notification-wrapper">
                 <details class="admin-notification approved">
                     <summary class="admin-notification-header">
-                        <span>✓ ${setCount} set${setCount === 1 ? "" : "s"} made it to the list!</span>
+                        <span>✓ ${setCount} set${setCount === 1 ? "" : "s"} made it into the list. Thank you for helping out! 💗</span>
                     </summary>
                     <div class="admin-notification-body">
                         ${itemsHTML}
