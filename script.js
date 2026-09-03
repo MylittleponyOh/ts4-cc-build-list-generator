@@ -2256,6 +2256,8 @@ function renderAdminList() {
 
     if (approved.length > 0) {
 
+        const setCount = countDistinctSets(approved);
+
         const itemsHTML = approved.map((sub) => `
             <div class="admin-notification-item">
                 <strong>${escapeHTML(sub.itemName)}</strong>
@@ -2263,45 +2265,64 @@ function renderAdminList() {
             </div>
         `).join("");
 
+        // The dismiss button lives OUTSIDE <summary> on purpose — a
+        // button nested inside <summary> also triggers the details
+        // open/close toggle on click, which fights with dismissing.
         html += `
-            <div class="admin-notification approved">
-                <div class="admin-notification-header">
-                    <span>✓ All of these submissions have made it to the list!</span>
-                    <button class="admin-notification-dismiss" data-dismiss="approved" type="button" title="Clear all">✕</button>
-                </div>
-                <div class="admin-notification-body">
-                    ${itemsHTML}
-                </div>
+            <div class="admin-notification-wrapper">
+                <details class="admin-notification approved">
+                    <summary class="admin-notification-header">
+                        <span>✓ ${setCount} set${setCount === 1 ? "" : "s"} made it to the list!</span>
+                    </summary>
+                    <div class="admin-notification-body">
+                        ${itemsHTML}
+                    </div>
+                </details>
+                <button class="admin-notification-dismiss" data-dismiss="approved" type="button" title="Clear all">✕</button>
             </div>
         `;
     }
 
-    html += stillPending.map((sub) => {
+    if (stillPending.length > 0) {
 
-        const safeLink = sanitizeUrl(sub.link);
-        const index = sub._index;
+        const entriesHTML = stillPending.map((sub) => {
 
-        return `
-            <div class="admin-entry">
-                <div class="admin-entry-header">
-                    <strong>${escapeHTML(sub.itemName)}</strong>
-                    <button class="admin-delete" data-index="${index}" type="button">✕</button>
+            const safeLink = sanitizeUrl(sub.link);
+            const index = sub._index;
+
+            return `
+                <div class="admin-entry">
+                    <div class="admin-entry-header">
+                        <strong>${escapeHTML(sub.itemName)}</strong>
+                        <button class="admin-delete" data-index="${index}" type="button">✕</button>
+                    </div>
+                    <div class="admin-entry-body">
+                        Set: ${escapeHTML(sub.setName)} · Creator: ${escapeHTML(sub.creator)}<br>
+                        Link: ${
+                            safeLink
+                                ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer">${escapeHTML(safeLink)}</a>`
+                                : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
+                        }
+                        ${sub.source ? `<br>Source: ${escapeHTML(sub.source)}` : ""}
+                    </div>
+                    <button class="admin-copy" data-index="${index}" type="button">
+                        ⧉ Copy as JSON
+                    </button>
                 </div>
-                <div class="admin-entry-body">
-                    Set: ${escapeHTML(sub.setName)} · Creator: ${escapeHTML(sub.creator)}<br>
-                    Link: ${
-                        safeLink
-                            ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer">${escapeHTML(safeLink)}</a>`
-                            : `<span class="cc-link-invalid">⚠ Invalid link format</span>`
-                    }
-                    ${sub.source ? `<br>Source: ${escapeHTML(sub.source)}` : ""}
+            `;
+        }).join("");
+
+        html += `
+            <details class="admin-notification pending">
+                <summary class="admin-notification-header">
+                    <span>⏳ ${stillPending.length} still pending review</span>
+                </summary>
+                <div class="admin-notification-body admin-entry-list">
+                    ${entriesHTML}
                 </div>
-                <button class="admin-copy" data-index="${index}" type="button">
-                    ⧉ Copy as JSON
-                </button>
-            </div>
+            </details>
         `;
-    }).join("");
+    }
 
     adminList.innerHTML = html;
 }
@@ -2321,6 +2342,20 @@ function closeAdminPanel() {
 
 const notificationBadge = document.getElementById("notificationBadge");
 
+// Counts distinct SETS, not raw submitted items — someone can submit
+// dozens of items belonging to just a handful of sets, and "62 sets"
+// is a much saner number to show than "682 items".
+function countDistinctSets(submissionsList) {
+
+    const keys = new Set();
+
+    submissionsList.forEach((sub) => {
+        keys.add(`${sub.creator}::${sub.setName}::${sub.part || ""}`);
+    });
+
+    return keys.size;
+}
+
 function updateNotificationBadge() {
 
     const submissions = getSubmissions();
@@ -2337,7 +2372,7 @@ function updateNotificationBadge() {
         return;
     }
 
-    notificationBadge.textContent = approved.length;
+    notificationBadge.textContent = countDistinctSets(approved);
     notificationBadge.style.display = "inline-flex";
 }
 
