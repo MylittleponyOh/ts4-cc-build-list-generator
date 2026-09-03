@@ -1667,6 +1667,67 @@ button:disabled {
     padding: 18px 0;
 }
 
+.admin-notification {
+    margin-bottom: 10px;
+
+    border: 1px solid #c8e1c9;
+    border-radius: var(--radius-small);
+
+    background: #e1f0e2;
+
+    overflow: hidden;
+}
+
+.admin-notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #2c6b32;
+}
+
+.admin-notification-dismiss {
+    flex-shrink: 0;
+
+    background: transparent;
+    color: #2c6b32;
+    font-size: 12px;
+    padding: 2px 6px;
+
+    opacity: 0.7;
+}
+
+.admin-notification-dismiss:hover {
+    opacity: 1;
+}
+
+.admin-notification-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    padding: 0 12px 10px;
+}
+
+.admin-notification-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    font-size: 11px;
+    color: #2c6b32;
+}
+
+.admin-notification-item span {
+    color: #3f7a45;
+}
+
 .admin-entry {
     padding: 12px;
 
