@@ -1095,29 +1095,27 @@ button:disabled {
     right: 14px;
     bottom: 60px;
 
-    min-width: 22px;
+    width: 22px;
     height: 22px;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    padding: 0 6px;
+    border: none;
+    border-radius: 50%;
 
-    border: 2px solid white;
-    border-radius: 999px;
-
-    background: #2c6b32;
+    background: #a4432f;
     color: white;
 
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
 
     cursor: pointer;
 
     z-index: 91;
 
-    box-shadow: 0 2px 8px rgba(44, 107, 50, 0.4);
+    box-shadow: 0 2px 8px rgba(164, 67, 47, 0.4);
 
     transition: transform 0.15s ease;
 }
@@ -1710,8 +1708,13 @@ button:disabled {
     padding: 18px 0;
 }
 
-.admin-notification {
+.admin-notification-wrapper {
+    position: relative;
     margin-bottom: 10px;
+}
+
+.admin-notification {
+    margin-bottom: 0;
 
     border: 1px solid #c8e1c9;
     border-radius: var(--radius-small);
@@ -1721,26 +1724,61 @@ button:disabled {
     overflow: hidden;
 }
 
+.admin-notification.pending {
+    margin-bottom: 10px;
+
+    border-color: #c9d3ea;
+    background: #e5eaf5;
+}
+
 .admin-notification-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
 
-    padding: 10px 12px;
+    padding: 10px 40px 10px 12px;
 
     font-size: 11.5px;
     font-weight: 700;
     color: #2c6b32;
+
+    cursor: pointer;
+
+    list-style: none;
 }
 
-.admin-notification-dismiss {
+.admin-notification-header::-webkit-details-marker {
+    display: none;
+}
+
+.admin-notification-header::before {
+    content: "▸";
     flex-shrink: 0;
+    font-size: 10px;
+}
+
+.admin-notification[open] > .admin-notification-header::before {
+    content: "▾";
+}
+
+.admin-notification.pending .admin-notification-header {
+    color: #3a4a78;
+    padding-right: 12px;
+}
+
+/* Positioned OUTSIDE <summary> on purpose — a button nested inside
+   summary also toggles the details open/close on click, which fights
+   with dismissing. Absolute positioning keeps it visually aligned
+   with the header without being part of it in the DOM. */
+.admin-notification-dismiss {
+    position: absolute;
+    top: 7px;
+    right: 8px;
 
     background: transparent;
     color: #2c6b32;
     font-size: 12px;
-    padding: 2px 6px;
+    padding: 4px 6px;
 
     opacity: 0.7;
 }
@@ -1755,6 +1793,11 @@ button:disabled {
     gap: 4px;
 
     padding: 0 12px 10px;
+}
+
+.admin-notification-body.admin-entry-list {
+    gap: 8px;
+    padding: 4px 12px 12px;
 }
 
 .admin-notification-item {
