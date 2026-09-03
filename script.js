@@ -2221,12 +2221,56 @@ function renderAdminList() {
         return;
     }
 
-    adminList.innerHTML = submissions
-        .map((sub, index) => {
+    // Split into "approved" (now has a working link in the verified
+    // database) vs "still pending" — approved ones get grouped into
+    // one dismissible reward banner instead of piling up individually.
+    // Original array indexes are preserved so delete/copy on the
+    // still-pending entries keep pointing at the right submission.
+    const approved = [];
+    const stillPending = [];
 
-            const safeLink = sanitizeUrl(sub.link);
+    submissions.forEach((sub, originalIndex) => {
 
-            return `
+        const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
+        const isApproved = candidates && candidates.some((c) => c.link && c.link.trim());
+
+        if (isApproved) {
+            approved.push({ ...sub, _index: originalIndex });
+        } else {
+            stillPending.push({ ...sub, _index: originalIndex });
+        }
+    });
+
+    let html = "";
+
+    if (approved.length > 0) {
+
+        const itemsHTML = approved.map((sub) => `
+            <div class="admin-notification-item">
+                <strong>${escapeHTML(sub.itemName)}</strong>
+                <span>${escapeHTML(sub.setName)}</span>
+            </div>
+        `).join("");
+
+        html += `
+            <div class="admin-notification approved">
+                <div class="admin-notification-header">
+                    <span>✓ All of these submissions have made it to the list!</span>
+                    <button class="admin-notification-dismiss" data-dismiss="approved" type="button" title="Clear all">✕</button>
+                </div>
+                <div class="admin-notification-body">
+                    ${itemsHTML}
+                </div>
+            </div>
+        `;
+    }
+
+    html += stillPending.map((sub) => {
+
+        const safeLink = sanitizeUrl(sub.link);
+        const index = sub._index;
+
+        return `
             <div class="admin-entry">
                 <div class="admin-entry-header">
                     <strong>${escapeHTML(sub.itemName)}</strong>
@@ -2246,14 +2290,17 @@ function renderAdminList() {
                 </button>
             </div>
         `;
-        })
-        .join("");
+    }).join("");
+
+    adminList.innerHTML = html;
 }
 
-function openAdminPanel() {
+async function openAdminPanel() {
     closeToolboxModal();
-    renderAdminList();
+    adminList.innerHTML = `<p class="admin-empty">Checking...</p>`;
     adminPanel.classList.add("show");
+    await loadDatabase();
+    renderAdminList();
 }
 
 function closeAdminPanel() {
@@ -2270,6 +2317,21 @@ adminPanel.addEventListener("click", (event) => {
 });
 
 adminList.addEventListener("click", async (event) => {
+
+    if (event.target.dataset.dismiss === "approved") {
+
+        const submissions = getSubmissions();
+
+        const remaining = submissions.filter((sub) => {
+            const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
+            const isApproved = candidates && candidates.some((c) => c.link && c.link.trim());
+            return !isApproved;
+        });
+
+        saveSubmissions(remaining);
+        renderAdminList();
+        return;
+    }
 
     const index = event.target.dataset.index;
 
