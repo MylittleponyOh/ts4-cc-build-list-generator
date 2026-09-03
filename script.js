@@ -86,6 +86,7 @@ function updateKnownCreators() {
 }
 
 const databaseLoadPromise = loadDatabase();
+databaseLoadPromise.then(() => updateNotificationBadge());
 
 // ------------------------------------------
 // CUSTOM CREATOR AUTOCOMPLETE
@@ -385,7 +386,7 @@ wireAutoFillSuggestion(
 // duplicate requests for the same popular unknown set.
 
 const CLAIMED_URL =
-    "https://opensheet.elk.sh/14jZ0bHqsi-CfscRTJptWwyu18tFbSnUsz_EyGztPOCI/R%C3%A9ponses%20au%20formulaire%201";
+    "https://opensheet.elk.sh/1JrGdCTOPk1VqzvthkrCcntGVTJ0-yzOuypR_jWAR3sM/R%C3%A9ponses%20au%20formulaire%201";
 
 let CLAIMED_SET = new Set();
 
@@ -2208,6 +2209,29 @@ bundleForm.addEventListener("submit", async (event) => {
 // ADMIN PANEL (local test only)
 // ==========================================
 
+// Shared by renderAdminList and the floating notification badge, so
+// the definition of "approved" only lives in one place.
+function isSubmissionApproved(sub) {
+    const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
+    return candidates && candidates.some((c) => c.link && c.link.trim());
+}
+
+function splitSubmissionsByStatus(submissions) {
+
+    const approved = [];
+    const stillPending = [];
+
+    submissions.forEach((sub, originalIndex) => {
+        if (isSubmissionApproved(sub)) {
+            approved.push({ ...sub, _index: originalIndex });
+        } else {
+            stillPending.push({ ...sub, _index: originalIndex });
+        }
+    });
+
+    return { approved, stillPending };
+}
+
 function renderAdminList() {
 
     const submissions = getSubmissions();
@@ -2226,20 +2250,7 @@ function renderAdminList() {
     // one dismissible reward banner instead of piling up individually.
     // Original array indexes are preserved so delete/copy on the
     // still-pending entries keep pointing at the right submission.
-    const approved = [];
-    const stillPending = [];
-
-    submissions.forEach((sub, originalIndex) => {
-
-        const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
-        const isApproved = candidates && candidates.some((c) => c.link && c.link.trim());
-
-        if (isApproved) {
-            approved.push({ ...sub, _index: originalIndex });
-        } else {
-            stillPending.push({ ...sub, _index: originalIndex });
-        }
-    });
+    const { approved, stillPending } = splitSubmissionsByStatus(submissions);
 
     let html = "";
 
@@ -2301,11 +2312,39 @@ async function openAdminPanel() {
     adminPanel.classList.add("show");
     await loadDatabase();
     renderAdminList();
+    updateNotificationBadge();
 }
 
 function closeAdminPanel() {
     adminPanel.classList.remove("show");
 }
+
+const notificationBadge = document.getElementById("notificationBadge");
+
+function updateNotificationBadge() {
+
+    const submissions = getSubmissions();
+
+    if (submissions.length === 0) {
+        notificationBadge.style.display = "none";
+        return;
+    }
+
+    const { approved } = splitSubmissionsByStatus(submissions);
+
+    if (approved.length === 0) {
+        notificationBadge.style.display = "none";
+        return;
+    }
+
+    notificationBadge.textContent = approved.length;
+    notificationBadge.style.display = "inline-flex";
+}
+
+// A direct shortcut — skips the toolbox menu entirely and jumps
+// straight to the admin panel, since that's the whole point of a
+// notification badge.
+notificationBadge.addEventListener("click", openAdminPanel);
 
 adminToggle.addEventListener("click", openAdminPanel);
 closeAdminButton.addEventListener("click", closeAdminPanel);
@@ -2321,15 +2360,11 @@ adminList.addEventListener("click", async (event) => {
     if (event.target.dataset.dismiss === "approved") {
 
         const submissions = getSubmissions();
-
-        const remaining = submissions.filter((sub) => {
-            const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
-            const isApproved = candidates && candidates.some((c) => c.link && c.link.trim());
-            return !isApproved;
-        });
+        const remaining = submissions.filter((sub) => !isSubmissionApproved(sub));
 
         saveSubmissions(remaining);
         renderAdminList();
+        updateNotificationBadge();
         return;
     }
 
