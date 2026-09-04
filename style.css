@@ -990,6 +990,8 @@ button:disabled {
     height: 14px;
 
     flex-shrink: 0;
+
+    accent-color: var(--text);
 }
 
 
