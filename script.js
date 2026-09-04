@@ -2467,7 +2467,7 @@ function renderAdminList() {
                     <strong>${escapeHTML(sub.itemName)}</strong>
                     <span>${escapeHTML(sub.setName)}</span>
                 </div>
-                ${sub._reason ? `<div class="admin-rejected-reason">${escapeHTML(sub._reason)}</div>` : ""}
+                ${sub._reason ? `<div class="admin-rejected-reason"><span class="admin-rejected-reason-label">Reason:</span> ${escapeHTML(sub._reason)}</div>` : ""}
                 <button
                     class="admin-fix-resubmit"
                     type="button"
@@ -2487,7 +2487,7 @@ function renderAdminList() {
             <div class="admin-notification-wrapper">
                 <details class="admin-notification rejected">
                     <summary class="admin-notification-header">
-                        <span>✕ ${rejected.length} submission${rejected.length === 1 ? "" : "s"} couldn't make it this time — check the reason and try again?</span>
+                        <span>✕ ${rejected.length} submission${rejected.length === 1 ? "" : "s"} couldn't make it this time, check the reason and try again?</span>
                     </summary>
                     <div class="admin-notification-body">
                         ${rejectedItemsHTML}
