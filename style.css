@@ -1054,6 +1054,41 @@ button:disabled {
 }
 
 
+.cc-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cc-actions .propose-button {
+    margin-top: 0;
+}
+
+.search-link {
+    flex-shrink: 0;
+    margin-top: 7px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-small);
+
+    color: var(--text-soft);
+
+    text-decoration: none;
+}
+
+.search-link:hover {
+    color: var(--text);
+    background: var(--surface-soft);
+}
+
+
 .possible-match-confirm {
     margin-top: 7px;
 
