@@ -853,6 +853,13 @@ function formatCCName(name) {
         .trim();
 }
 
+// Same idea as S4TI's own right-click "Search Google" — a quick lead
+// for the person to go find the actual creator/download page. "sims
+// 4 cc" is appended to bias results toward the right context.
+function buildSearchUrl(query) {
+    return `https://www.google.com/search?q=${encodeURIComponent(`${query} sims 4 cc`)}`;
+}
+
 // A "file" (one [bracket] entry from S4TI) can carry more than one
 // Instance ID — merged packages and multi-part objects are the common
 // cases. This counts real instances, not just distinct file entries.
@@ -1301,16 +1308,19 @@ function renderResults(items) {
                     <span translate="no">by <span class="cc-creator">${escapeHTML(group.creator)}</span></span>
                 </div>
 
-                <button
-                    class="propose-button"
-                    type="button"
-                    translate="no"
-                    data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
-                    data-setname="${escapeHTML(group.setName)}"
-                    data-creator="${escapeHTML(group.creator)}"
-                >
-                    + Submit a link
-                </button>
+                <div class="cc-actions">
+                    <a href="${escapeHTML(buildSearchUrl(`${group.creator} ${group.setName}`))}" target="_blank" rel="noopener noreferrer" class="search-link" translate="no" title="Search Google for this set"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14.5" y2="14.5" stroke-linecap="round"/></svg></a>
+                    <button
+                        class="propose-button"
+                        type="button"
+                        translate="no"
+                        data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
+                        data-setname="${escapeHTML(group.setName)}"
+                        data-creator="${escapeHTML(group.creator)}"
+                    >
+                        + Submit a link
+                    </button>
+                </div>
 
                 ${tagFlagRowHTML(tagKey)}
 
@@ -1558,16 +1568,19 @@ function renderResults(items) {
 
                 <div class="cc-meta cc-meta-unknown">Not in the database yet</div>
 
-                <button
-                    class="propose-button"
-                    type="button"
-                    translate="no"
-                    data-instances="${escapeHTML(instances.join(","))}"
-                    data-setname=""
-                    data-creator=""
-                >
-                    + Submit a link
-                </button>
+                <div class="cc-actions">
+                    <a href="${escapeHTML(buildSearchUrl(displayName))}" target="_blank" rel="noopener noreferrer" class="search-link" translate="no" title="Search Google for this item"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14.5" y2="14.5" stroke-linecap="round"/></svg></a>
+                    <button
+                        class="propose-button"
+                        type="button"
+                        translate="no"
+                        data-instances="${escapeHTML(instances.join(","))}"
+                        data-setname=""
+                        data-creator=""
+                    >
+                        + Submit a link
+                    </button>
+                </div>
             </div>
         `;
     }).join("");
