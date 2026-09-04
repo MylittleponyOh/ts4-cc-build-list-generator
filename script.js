@@ -488,6 +488,63 @@ const rejectedLoadPromise = loadRejected();
 rejectedLoadPromise.then(() => updateNotificationBadge());
 
 
+function extractMiddleHex(instanceStr) {
+    const match = (instanceStr || "").trim().match(/!(0x[0-9a-f]+)\./i);
+    return match ? match[1].toLowerCase() : null;
+}
+
+// Flattens DATABASE_INDEX into individual {hex, entry} pairs for
+// proximity scanning — only entries with a real link are worth
+// suggesting as a "possible match" for someone.
+function buildKnownInstancesFlat() {
+
+    const flat = [];
+
+    Object.entries(DATABASE_INDEX).forEach(([id, candidates]) => {
+        candidates.forEach((entry) => {
+            if (entry.link && entry.link.trim()) {
+                flat.push({ hex: extractMiddleHex(id), entry });
+            }
+        });
+    });
+
+    return flat;
+}
+
+// Same tolerance (±0x40) and long-shared-prefix requirement already
+// validated in the personal Swatch Checker tool — a genuine
+// coincidental collision between two unrelated objects at this
+// precision is astronomically unlikely; the realistic case is a
+// different swatch of the same known object.
+function findPossibleMatch(instanceStr, knownFlat) {
+
+    const h = extractMiddleHex(instanceStr);
+
+    if (!h) {
+        return null;
+    }
+
+    for (const { hex: knownHex, entry } of knownFlat) {
+
+        if (!knownHex || knownHex.length !== h.length) {
+            continue;
+        }
+
+        const prefixLen = h.length - 4;
+
+        if (h.slice(0, prefixLen) === knownHex.slice(0, prefixLen)) {
+
+            const diff = parseInt(h.slice(-4), 16) - parseInt(knownHex.slice(-4), 16);
+
+            if (Math.abs(diff) <= 0x40) {
+                return entry;
+            }
+        }
+    }
+
+    return null;
+}
+
 function lookupCandidates(item) {
 
     for (const instance of item.instances) {
@@ -846,11 +903,14 @@ function classifyAndGroup(items) {
         pending: new Map(),
         recognized: new Map(),
         missing: new Map(),
-        multiple: new Map()
+        multiple: new Map(),
+        possibleMatch: new Map()
     };
 
     const claimedItems = [];
     const unknownItems = [];
+
+    const knownInstancesFlat = buildKnownInstancesFlat();
 
     items.forEach((item) => {
 
@@ -953,6 +1013,36 @@ function classifyAndGroup(items) {
             return;
         }
 
+        // 6. No exact match anywhere, but at least one of this item's
+        // instances sits suspiciously close to an already-known,
+        // linked entry — very likely just a different swatch of that
+        // same object. Suggested, never auto-confirmed: it lands in
+        // pending like any other submission once the person clicks
+        // through, so moderation still has the final say.
+        let possibleMatch = null;
+
+        for (const rawInstance of item.instances) {
+
+            const match = findPossibleMatch(rawInstance, knownInstancesFlat);
+
+            if (match) {
+                possibleMatch = match;
+                break;
+            }
+        }
+
+        if (possibleMatch) {
+
+            const key = `${possibleMatch.creator}::${possibleMatch.setName}::${possibleMatch.part || ""}`;
+
+            if (!buckets.possibleMatch.has(key)) {
+                buckets.possibleMatch.set(key, { ...possibleMatch, items: [] });
+            }
+
+            buckets.possibleMatch.get(key).items.push(item);
+            return;
+        }
+
         unknownItems.push(item);
     });
 
@@ -961,6 +1051,7 @@ function classifyAndGroup(items) {
         recognizedGroups: Array.from(buckets.recognized.values()),
         missingGroups: Array.from(buckets.missing.values()),
         multipleGroups: Array.from(buckets.multiple.values()),
+        possibleMatchGroups: Array.from(buckets.possibleMatch.values()),
         claimedItems,
         unknownItems
     };
@@ -1096,7 +1187,7 @@ function renderResults(items) {
     const list = document.createElement("div");
     list.className = "result-list";
 
-    const { pendingGroups, recognizedGroups, missingGroups, multipleGroups, claimedItems, unknownItems } =
+    const { pendingGroups, recognizedGroups, missingGroups, multipleGroups, possibleMatchGroups, claimedItems, unknownItems } =
         classifyAndGroup(items);
 
     // PENDING GROUPS (user's own submission, awaiting validation)
@@ -1334,6 +1425,60 @@ function renderResults(items) {
     }).join("");
 
     list.innerHTML += wrapStatusSection("multiple", "🔀 multiple matches", multipleGroups.length, multipleHTML);
+
+    // POSSIBLE MATCH (no exact instance match, but a suggested guess
+    // sits close enough to an already-known linked item)
+
+    const possibleMatchHTML = possibleMatchGroups.map((group) => {
+
+        const itemsListHTML = group.items
+            .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
+            .join("");
+
+        const safeLink = sanitizeUrl(group.link);
+
+        const displayName = group.itemName && group.itemName.trim()
+            ? `a different swatch of ${group.itemName}`
+            : `a different swatch from ${group.setName} by ${group.creator}`;
+
+        return `
+            <div class="cc-item possible-match">
+                <div class="cc-item-row">
+                    <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
+                    <span class="cc-status possible-match" translate="no">🔵 possible match (${group.items.length})</span>
+                </div>
+
+                <div class="cc-meta">
+                    This looks like <span translate="no">${escapeHTML(displayName)}</span>, not yet confirmed.
+                </div>
+
+                ${
+                    safeLink
+                        ? `<a href="${escapeHTML(safeLink)}" target="_blank" rel="noopener noreferrer" class="cc-link">🔗 View the suggested link</a>`
+                        : ""
+                }
+
+                <button
+                    class="possible-match-confirm"
+                    type="button"
+                    data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
+                    data-setname="${escapeHTML(group.setName)}"
+                    data-creator="${escapeHTML(group.creator)}"
+                    data-link="${escapeHTML(group.link)}"
+                    data-part="${escapeHTML(group.part || "")}"
+                >
+                    Yes, same set, just a different swatch
+                </button>
+
+                <details class="cc-details">
+                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <ul>${itemsListHTML}</ul>
+                </details>
+            </div>
+        `;
+    }).join("");
+
+    list.innerHTML += wrapStatusSection("possible-match", "🔵 possible match", possibleMatchGroups.length, possibleMatchHTML);
 
     // CLAIMED ITEMS (already submitted by someone else, awaiting validation)
 
@@ -1961,6 +2106,52 @@ result.addEventListener("click", (event) => {
             bundleSelection,
             "Sent through Bundle & Link"
         );
+
+        return;
+    }
+
+    if (event.target.classList.contains("possible-match-confirm")) {
+
+        const btn = event.target;
+
+        btn.disabled = true;
+        btn.textContent = "Confirming...";
+
+        const instances = btn.dataset.instances.split(",").map((i) => i.trim()).filter(Boolean);
+        const setName = btn.dataset.setname;
+        const creator = btn.dataset.creator;
+        const link = btn.dataset.link;
+        const part = btn.dataset.part;
+
+        (async () => {
+
+            const submissions = getSubmissions();
+
+            for (const instance of instances) {
+
+                const submission = {
+                    itemName: setName,
+                    instance,
+                    setName,
+                    part,
+                    creator,
+                    link,
+                    source: "Confirmed possible match",
+                    submittedAt: new Date().toISOString()
+                };
+
+                await submitToGoogleForm(submission);
+                submissions.push(submission);
+            }
+
+            saveSubmissions(submissions);
+
+            showToast("Thanks for confirming, this will be reviewed shortly.");
+
+            if (generatedItems.length > 0) {
+                renderResults(generatedItems);
+            }
+        })();
 
         return;
     }
