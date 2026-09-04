@@ -39,7 +39,8 @@ async function loadDatabase() {
                 creator: row.Creator || "",
                 setName: row.SetName || "",
                 link: row.Link || "",
-                part: row.Part || ""
+                part: row.Part || "",
+                itemName: row["Item Name"] || ""
             };
 
             if (!index[id]) {
