@@ -1064,6 +1064,10 @@ button:disabled {
     margin-top: 0;
 }
 
+.cc-actions .search-link {
+    margin-top: 0;
+}
+
 .search-link {
     flex-shrink: 0;
     margin-top: 7px;
