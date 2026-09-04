@@ -885,6 +885,68 @@ button:disabled {
 }
 
 
+.creator-group {
+    border-bottom: 1px solid var(--border);
+}
+
+
+.creator-group:last-child {
+    border-bottom: none;
+}
+
+
+.creator-group-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 4px;
+
+    cursor: pointer;
+
+    list-style: none;
+}
+
+
+.creator-group-summary::-webkit-details-marker {
+    display: none;
+}
+
+
+.creator-group-summary::before {
+    content: "▸";
+    color: var(--text-faint);
+    font-size: 10px;
+}
+
+
+.creator-group[open] > .creator-group-summary::before {
+    content: "▾";
+}
+
+
+.creator-group-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+
+.creator-group-count {
+    color: var(--text-faint);
+    font-size: 10.5px;
+}
+
+
+.creator-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 0 0 10px 16px;
+}
+
+
 .bundle-link-button {
     padding: 6px 12px;
 
