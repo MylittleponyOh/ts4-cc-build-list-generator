@@ -427,7 +427,31 @@ const claimedLoadPromise = loadClaimed();
 const REJECTED_URL =
     "https://opensheet.elk.sh/1JrGdCTOPk1VqzvthkrCcntGVTJ0-yzOuypR_jWAR3sM/Rejected";
 
-let REJECTED_MAP = new Map(); // instance -> reason text (from "Infos")
+let REJECTED_MAP = new Map(); // instance -> { reason, rejectedAt: Date | null }
+
+// Google Forms' auto-added "Horodateur" column, in the sheet's
+// day/month/year locale — e.g. "04/09/2026 04:20:18". JS's built-in
+// Date parsing isn't reliable for this format (it can silently read
+// it as month/day instead), so it's parsed explicitly here.
+function parseHorodateur(str) {
+
+    const match = (str || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const [, day, month, year, hour, minute, second] = match;
+
+    return new Date(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hour, 10),
+        parseInt(minute, 10),
+        parseInt(second, 10)
+    );
+}
 
 async function loadRejected() {
 
@@ -443,7 +467,10 @@ async function loadRejected() {
             const id = (row["Instance ID"] || "").trim();
 
             if (id) {
-                rejected.set(id, (row["Infos"] || "").trim());
+                rejected.set(id, {
+                    reason: (row["Infos"] || "").trim(),
+                    rejectedAt: parseHorodateur(row["Horodateur"])
+                });
             }
         });
 
@@ -2318,6 +2345,28 @@ function isSubmissionApproved(sub) {
     return candidates && candidates.some((c) => c.link && c.link.trim());
 }
 
+// Shared by splitSubmissionsByStatus and the "dismiss all rejected"
+// button, so both agree on exactly which submissions count as
+// rejected — a rejection only applies to submissions made BEFORE it
+// happened; a later resubmission sharing the same instance is a
+// fresh, unjudged attempt.
+function getRejectionInfo(sub) {
+
+    const instance = (sub.instance || "").trim();
+    const rejectionInfo = REJECTED_MAP.get(instance);
+
+    if (!rejectionInfo) {
+        return null;
+    }
+
+    const wasThisSubmissionRejected =
+        !rejectionInfo.rejectedAt ||
+        !sub.submittedAt ||
+        new Date(sub.submittedAt) <= rejectionInfo.rejectedAt;
+
+    return wasThisSubmissionRejected ? rejectionInfo : null;
+}
+
 function splitSubmissionsByStatus(submissions) {
 
     const approved = [];
@@ -2337,10 +2386,10 @@ function splitSubmissionsByStatus(submissions) {
             return;
         }
 
-        const instance = (sub.instance || "").trim();
+        const rejectionInfo = getRejectionInfo(sub);
 
-        if (REJECTED_MAP.has(instance)) {
-            withIndex._reason = REJECTED_MAP.get(instance);
+        if (rejectionInfo) {
+            withIndex._reason = rejectionInfo.reason;
             rejected.push(withIndex);
         } else {
             stillPending.push(withIndex);
@@ -2568,7 +2617,7 @@ adminList.addEventListener("click", async (event) => {
 
         const remaining = submissions.filter((sub) => {
             if (isSubmissionApproved(sub)) return true; // never drop an approved one here
-            return !REJECTED_MAP.has((sub.instance || "").trim());
+            return !getRejectionInfo(sub);
         });
 
         saveSubmissions(remaining);
