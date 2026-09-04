@@ -2359,10 +2359,19 @@ function getRejectionInfo(sub) {
         return null;
     }
 
+    // Horodateur only has second-level precision, while submittedAt
+    // carries milliseconds — a submission truly made just before the
+    // rejection can still show a slightly LATER raw value once
+    // Horodateur truncates its fractional second away. A 30-second
+    // tolerance absorbs that without risking mixing up a genuine,
+    // much-later resubmission (which realistically takes minutes to
+    // hours — reading the reason, fixing the fields, resubmitting).
+    const TOLERANCE_MS = 30 * 1000;
+
     const wasThisSubmissionRejected =
         !rejectionInfo.rejectedAt ||
         !sub.submittedAt ||
-        new Date(sub.submittedAt) <= rejectionInfo.rejectedAt;
+        new Date(sub.submittedAt) <= new Date(rejectionInfo.rejectedAt.getTime() + TOLERANCE_MS);
 
     return wasThisSubmissionRejected ? rejectionInfo : null;
 }
