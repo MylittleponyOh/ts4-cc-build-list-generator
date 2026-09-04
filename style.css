@@ -1731,6 +1731,70 @@ button:disabled {
     background: #e5eaf5;
 }
 
+.admin-notification.rejected {
+    border-color: #e5c3bc;
+    background: #f6e3e0;
+}
+
+.admin-notification.rejected .admin-notification-header {
+    color: #a4432f;
+}
+
+.admin-notification-item.rejected-item {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.admin-notification-item.rejected-item > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.rejected-item strong,
+.rejected-item span {
+    color: #a4432f;
+}
+
+.rejected-item span {
+    color: #b8654f;
+}
+
+.admin-rejected-reason {
+    margin-top: 3px;
+
+    font-size: 10.5px;
+    font-style: italic;
+    color: #8a3527;
+}
+
+.rejected-dismiss {
+    color: #a4432f;
+}
+
+.admin-fix-resubmit {
+    align-self: flex-start;
+
+    margin-top: 5px;
+
+    padding: 4px 9px;
+
+    border: 1px dashed #d19183;
+    border-radius: var(--radius-small);
+
+    background: transparent;
+    color: #a4432f;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.admin-fix-resubmit:hover {
+    border-color: #a4432f;
+    background: #f6e3e0;
+}
+
 .admin-notification-header {
     display: flex;
     align-items: center;
