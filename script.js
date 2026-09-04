@@ -994,6 +994,56 @@ function generateList() {
 // Wraps a status category's inner HTML into a collapsible <details>
 // section (closed by default, to keep the results panel scannable).
 // Returns "" if there's nothing to show for this status.
+// Sorts a list of {creator, setName, part, cardHTML} entries by
+// creator, then set name, then part (so "Set A - Part 1" sits right
+// before "Set A - Part 2"), and nests them under one collapsible
+// sub-section per creator. Only makes sense for statuses where every
+// entry actually HAS a creator/set — recognized, pending, missing.
+// Multiple matches and claimed items don't carry this info reliably,
+// so they're never routed through this.
+function groupByCreatorHTML(entries) {
+
+    const sorted = [...entries].sort((a, b) => {
+        const creatorCmp = a.creator.localeCompare(b.creator, undefined, { sensitivity: "base" });
+        if (creatorCmp !== 0) return creatorCmp;
+        const setCmp = a.setName.localeCompare(b.setName, undefined, { sensitivity: "base" });
+        if (setCmp !== 0) return setCmp;
+        return (a.part || "").localeCompare(b.part || "", undefined, { sensitivity: "base", numeric: true });
+    });
+
+    const byCreator = new Map();
+
+    sorted.forEach((entry) => {
+        if (!byCreator.has(entry.creator)) {
+            byCreator.set(entry.creator, []);
+        }
+        byCreator.get(entry.creator).push(entry);
+    });
+
+    let html = "";
+
+    byCreator.forEach((entriesForCreator, creator) => {
+
+        // Count distinct SETS for this creator, not raw entries — a
+        // set split into several parts still reads as one set here.
+        const setKeys = new Set(entriesForCreator.map((e) => e.setName));
+
+        html += `
+            <details class="creator-group">
+                <summary class="creator-group-summary">
+                    <span class="creator-group-name">${escapeHTML(creator)}</span>
+                    <span class="creator-group-count">${setKeys.size} set${setKeys.size === 1 ? "" : "s"}</span>
+                </summary>
+                <div class="creator-group-body">
+                    ${entriesForCreator.map((e) => e.cardHTML).join("")}
+                </div>
+            </details>
+        `;
+    });
+
+    return html;
+}
+
 function wrapStatusSection(statusClass, badgeText, count, innerHTML) {
 
     if (count === 0) {
@@ -1023,7 +1073,7 @@ function renderResults(items) {
 
     // PENDING GROUPS (user's own submission, awaiting validation)
 
-    const pendingHTML = pendingGroups.map((group) => {
+    const pendingEntries = pendingGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
@@ -1032,7 +1082,7 @@ function renderResults(items) {
         const safeLink = sanitizeUrl(group.link);
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        return `
+        const cardHTML = `
             <div class="cc-item pending">
                 <div class="cc-item-row">
                     <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
@@ -1059,13 +1109,17 @@ function renderResults(items) {
                 </details>
             </div>
         `;
-    }).join("");
+
+        return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
+    });
+
+    const pendingHTML = groupByCreatorHTML(pendingEntries);
 
     list.innerHTML += wrapStatusSection("pending", "⏳ pending", pendingGroups.length, pendingHTML);
 
     // RECOGNIZED GROUPS (in database, with a link)
 
-    const recognizedHTML = recognizedGroups.map((group) => {
+    const recognizedEntries = recognizedGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
@@ -1074,7 +1128,7 @@ function renderResults(items) {
         const safeLink = sanitizeUrl(group.link);
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        return `
+        const cardHTML = `
             <div class="cc-item recognized">
                 <div class="cc-item-row">
                     <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
@@ -1099,13 +1153,17 @@ function renderResults(items) {
                 </details>
             </div>
         `;
-    }).join("");
+
+        return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
+    });
+
+    const recognizedHTML = groupByCreatorHTML(recognizedEntries);
 
     list.innerHTML += wrapStatusSection("recognized", "✓ recognized", recognizedGroups.length, recognizedHTML);
 
     // MISSING-LINK GROUPS (in database, no link yet)
 
-    const missingHTML = missingGroups.map((group) => {
+    const missingEntries = missingGroups.map((group) => {
 
         const itemsListHTML = group.items
             .map((it) => `<li translate="no">${escapeHTML(formatCCName(it.name))}</li>`)
@@ -1113,7 +1171,7 @@ function renderResults(items) {
 
         const tagKey = `${group.creator}::${group.setName}::${group.part || ""}`;
 
-        return `
+        const cardHTML = `
             <div class="cc-item missing-link">
                 <div class="cc-item-row">
                     <span class="cc-name" translate="no">${escapeHTML(group.setName)}${group.part ? ` - ${escapeHTML(group.part)}` : ""}</span>
@@ -1143,7 +1201,11 @@ function renderResults(items) {
                 </details>
             </div>
         `;
-    }).join("");
+
+        return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
+    });
+
+    const missingHTML = groupByCreatorHTML(missingEntries);
 
     list.innerHTML += wrapStatusSection("missing", "⚠ link missing", missingGroups.length, missingHTML);
 
@@ -1264,11 +1326,9 @@ function renderResults(items) {
 
     // UNKNOWN ITEMS (not in the database at all)
 
-    const sortedUnknown = bundleModeEnabled
-        ? [...unknownItems].sort((a, b) =>
-            formatCCName(a.name).localeCompare(formatCCName(b.name), undefined, { sensitivity: "base" })
-        )
-        : unknownItems;
+    const sortedUnknown = [...unknownItems].sort((a, b) =>
+        formatCCName(a.name).localeCompare(formatCCName(b.name), undefined, { sensitivity: "base" })
+    );
 
     let unknownHTML = "";
 
