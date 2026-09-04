@@ -456,6 +456,9 @@ async function loadRejected() {
     }
 }
 
+const rejectedLoadPromise = loadRejected();
+rejectedLoadPromise.then(() => updateNotificationBadge());
+
 
 function lookupCandidates(item) {
 
@@ -2459,14 +2462,16 @@ function updateNotificationBadge() {
         return;
     }
 
-    const { approved } = splitSubmissionsByStatus(submissions);
+    const { approved, rejected } = splitSubmissionsByStatus(submissions);
 
-    if (approved.length === 0) {
+    const total = countDistinctSets(approved) + rejected.length;
+
+    if (total === 0) {
         notificationBadge.style.display = "none";
         return;
     }
 
-    notificationBadge.textContent = countDistinctSets(approved);
+    notificationBadge.textContent = total;
     notificationBadge.style.display = "inline-flex";
 }
 
