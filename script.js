@@ -419,6 +419,43 @@ async function loadClaimed() {
 
 const claimedLoadPromise = loadClaimed();
 
+// ------------------------------------------
+// REJECTED INDEX (local admin panel only — never affects the public
+// site's statuses, which only ever read the live pending sheet)
+// ------------------------------------------
+
+const REJECTED_URL =
+    "https://opensheet.elk.sh/1JrGdCTOPk1VqzvthkrCcntGVTJ0-yzOuypR_jWAR3sM/Rejected";
+
+let REJECTED_MAP = new Map(); // instance -> reason text (from "Infos")
+
+async function loadRejected() {
+
+    try {
+
+        const response = await fetch(REJECTED_URL);
+        const rows = await response.json();
+
+        const rejected = new Map();
+
+        rows.forEach((row) => {
+
+            const id = (row["Instance ID"] || "").trim();
+
+            if (id) {
+                rejected.set(id, (row["Infos"] || "").trim());
+            }
+        });
+
+        REJECTED_MAP = rejected;
+
+    } catch (error) {
+
+        console.error("Could not load the rejected index:", error);
+        REJECTED_MAP = new Map();
+    }
+}
+
 
 function lookupCandidates(item) {
 
@@ -1689,7 +1726,7 @@ let currentProposedInstances = [];
 let currentProposedNames = {}; // { [instance]: real item name for THIS row }
 let currentProposedSource = ""; // moderation tag, e.g. "Sent through Bundle & Link"
 
-function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, namesByInstance, source) {
+function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, namesByInstance, source, linkGuess, partGuess) {
 
     currentProposedItemName = itemName;
     currentProposedInstances = (instancesCsv || "")
@@ -1722,6 +1759,8 @@ function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, nam
 
     document.getElementById("fieldSetName").value = setNameGuess || "";
     document.getElementById("fieldCreator").value = creatorGuess || "";
+    document.getElementById("fieldLink").value = linkGuess || "";
+    document.getElementById("fieldPart").value = partGuess || "";
 
     partHint.style.display = "none";
     document.getElementById("prefillHint").style.display = "none";
@@ -2219,17 +2258,33 @@ function isSubmissionApproved(sub) {
 function splitSubmissionsByStatus(submissions) {
 
     const approved = [];
+    const rejected = [];
     const stillPending = [];
 
     submissions.forEach((sub, originalIndex) => {
+
+        const withIndex = { ...sub, _index: originalIndex };
+
+        // Approved always wins — if someone corrected a rejected
+        // submission and it's now in the verified database, it shows
+        // as Approved even if an old Rejected row still exists for
+        // the same instance.
         if (isSubmissionApproved(sub)) {
-            approved.push({ ...sub, _index: originalIndex });
+            approved.push(withIndex);
+            return;
+        }
+
+        const instance = (sub.instance || "").trim();
+
+        if (REJECTED_MAP.has(instance)) {
+            withIndex._reason = REJECTED_MAP.get(instance);
+            rejected.push(withIndex);
         } else {
-            stillPending.push({ ...sub, _index: originalIndex });
+            stillPending.push(withIndex);
         }
     });
 
-    return { approved, stillPending };
+    return { approved, rejected, stillPending };
 }
 
 function renderAdminList() {
@@ -2250,7 +2305,7 @@ function renderAdminList() {
     // one dismissible reward banner instead of piling up individually.
     // Original array indexes are preserved so delete/copy on the
     // still-pending entries keep pointing at the right submission.
-    const { approved, stillPending } = splitSubmissionsByStatus(submissions);
+    const { approved, rejected, stillPending } = splitSubmissionsByStatus(submissions);
 
     let html = "";
 
@@ -2279,6 +2334,45 @@ function renderAdminList() {
                     </div>
                 </details>
                 <button class="admin-notification-dismiss" data-dismiss="approved" type="button" title="Clear all">✕</button>
+            </div>
+        `;
+    }
+
+    if (rejected.length > 0) {
+
+        const rejectedItemsHTML = rejected.map((sub) => `
+            <div class="admin-notification-item rejected-item">
+                <div>
+                    <strong>${escapeHTML(sub.itemName)}</strong>
+                    <span>${escapeHTML(sub.setName)}</span>
+                </div>
+                ${sub._reason ? `<div class="admin-rejected-reason">${escapeHTML(sub._reason)}</div>` : ""}
+                <button
+                    class="admin-fix-resubmit"
+                    type="button"
+                    data-item-name="${escapeHTML(sub.itemName)}"
+                    data-instance="${escapeHTML(sub.instance)}"
+                    data-set-name="${escapeHTML(sub.setName)}"
+                    data-creator="${escapeHTML(sub.creator)}"
+                    data-link="${escapeHTML(sub.link)}"
+                    data-part="${escapeHTML(sub.part || "")}"
+                >
+                    Fix & resubmit
+                </button>
+            </div>
+        `).join("");
+
+        html += `
+            <div class="admin-notification-wrapper">
+                <details class="admin-notification rejected">
+                    <summary class="admin-notification-header">
+                        <span>✕ ${rejected.length} submission${rejected.length === 1 ? "" : "s"} couldn't make it this time — check the reason and try again?</span>
+                    </summary>
+                    <div class="admin-notification-body">
+                        ${rejectedItemsHTML}
+                    </div>
+                </details>
+                <button class="admin-notification-dismiss rejected-dismiss" data-dismiss="rejected" type="button" title="Clear all">✕</button>
             </div>
         `;
     }
@@ -2331,7 +2425,7 @@ async function openAdminPanel() {
     closeToolboxModal();
     adminList.innerHTML = `<p class="admin-empty">Checking...</p>`;
     adminPanel.classList.add("show");
-    await loadDatabase();
+    await Promise.all([loadDatabase(), loadRejected()]);
     renderAdminList();
     updateNotificationBadge();
 }
@@ -2400,6 +2494,40 @@ adminList.addEventListener("click", async (event) => {
         saveSubmissions(remaining);
         renderAdminList();
         updateNotificationBadge();
+        return;
+    }
+
+    if (event.target.dataset.dismiss === "rejected") {
+
+        const submissions = getSubmissions();
+
+        const remaining = submissions.filter((sub) => {
+            if (isSubmissionApproved(sub)) return true; // never drop an approved one here
+            return !REJECTED_MAP.has((sub.instance || "").trim());
+        });
+
+        saveSubmissions(remaining);
+        renderAdminList();
+        return;
+    }
+
+    if (event.target.classList.contains("admin-fix-resubmit")) {
+
+        const btn = event.target;
+
+        closeAdminPanel();
+
+        openSubmitModal(
+            btn.dataset.itemName,
+            btn.dataset.instance,
+            btn.dataset.setName,
+            btn.dataset.creator,
+            undefined,
+            "Resubmitted after rejection",
+            btn.dataset.link,
+            btn.dataset.part
+        );
+
         return;
     }
 
