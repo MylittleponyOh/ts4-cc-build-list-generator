@@ -1472,6 +1472,7 @@ function renderResults(items) {
                     class="possible-match-confirm"
                     type="button"
                     data-instances="${escapeHTML(representativeInstances(group.items).join(","))}"
+                    data-names="${escapeHTML(JSON.stringify(Object.fromEntries(group.items.map((it) => [(it.instances[0] || "").trim(), it.name]))))}"
                     data-setname="${escapeHTML(group.setName)}"
                     data-creator="${escapeHTML(group.creator)}"
                     data-link="${escapeHTML(group.link)}"
@@ -2131,6 +2132,7 @@ result.addEventListener("click", (event) => {
         btn.textContent = "Confirming...";
 
         const instances = btn.dataset.instances.split(",").map((i) => i.trim()).filter(Boolean);
+        const names = JSON.parse(btn.dataset.names || "{}");
         const setName = btn.dataset.setname;
         const creator = btn.dataset.creator;
         const link = btn.dataset.link;
@@ -2143,7 +2145,7 @@ result.addEventListener("click", (event) => {
             for (const instance of instances) {
 
                 const submission = {
-                    itemName: setName,
+                    itemName: names[instance] || setName,
                     instance,
                     setName,
                     part,
