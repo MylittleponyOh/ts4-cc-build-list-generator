@@ -1230,7 +1230,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1274,7 +1274,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1325,7 +1325,7 @@ function renderResults(items) {
                 ${tagFlagRowHTML(tagKey)}
 
                 <details class="cc-details">
-                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1427,7 +1427,7 @@ function renderResults(items) {
                 ${tagRowHTML}
 
                 <details class="cc-details">
-                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
@@ -1482,7 +1482,7 @@ function renderResults(items) {
                 </button>
 
                 <details class="cc-details">
-                    <summary>View ${instanceCount(group.items)} item(s)</summary>
+                    <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
             </div>
