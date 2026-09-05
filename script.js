@@ -2476,15 +2476,17 @@ bundleForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        const instance = representativeInstances([item])[0];
+        // Package Reader now makes a full swatch list free to obtain,
+        // so AYACC sends every instance for the item, not just one
+        // representative — filling in every swatch in one go instead
+        // of leaving the rest to be caught one at a time by Possible
+        // Match later.
+        allTrimmedInstances.forEach((instance) => {
 
-        if (!instance) {
-            return;
-        }
-
-        submissionsToSend.push({
-            itemName: formatCCName(item.name),
-            instance
+            submissionsToSend.push({
+                itemName: formatCCName(item.name),
+                instance
+            });
         });
     });
 
@@ -2545,10 +2547,12 @@ bundleForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
+    const submittedItemCount = items.length - skippedCount;
+
     showToast(
         skippedCount > 0
-            ? `Submitted ${submissionsToSend.length} items (${skippedCount} already known, skipped)`
-            : `Submitted ${submissionsToSend.length} items for review`
+            ? `Submitted ${submissionsToSend.length} swatches across ${submittedItemCount} items (${skippedCount} already known, skipped)`
+            : `Submitted ${submissionsToSend.length} swatches across ${submittedItemCount} items for review`
     );
 
     if (generatedItems.length > 0) {
