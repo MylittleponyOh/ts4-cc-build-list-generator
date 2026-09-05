@@ -13,6 +13,17 @@ const DATABASE_URL =
 
 let DATABASE_INDEX = {};
 
+// Range-declared entries (Instance Start + Instance End), for objects
+// whose swatches follow S4S's base+increment numbering — confirmed
+// this only applies to Object-type resources, never walls, floors,
+// roofs or fences (each design there gets its own unrelated ID).
+let RANGE_ENTRIES = [];
+
+function extractTypeSuffix(instanceStr) {
+    const match = (instanceStr || "").trim().match(/\.(0x[0-9a-f]+)$/i);
+    return match ? match[1].toLowerCase() : null;
+}
+
 async function loadDatabase() {
 
     try {
@@ -26,6 +37,7 @@ async function loadDatabase() {
         // ID is shared on purpose), both are kept instead of the second
         // one silently overwriting the first.
         const index = {};
+        const ranges = [];
 
         rows.forEach((row) => {
 
@@ -48,9 +60,16 @@ async function loadDatabase() {
             }
 
             index[id].push(entry);
+
+            const endRaw = (row["Instance End"] || "").trim();
+
+            if (endRaw) {
+                ranges.push({ startFull: id, endFull: endRaw, entry });
+            }
         });
 
         DATABASE_INDEX = index;
+        RANGE_ENTRIES = ranges;
 
         updateKnownCreators();
 
@@ -58,6 +77,7 @@ async function loadDatabase() {
 
         console.error("Could not load the database:", error);
         DATABASE_INDEX = {};
+        RANGE_ENTRIES = [];
     }
 }
 
@@ -545,6 +565,41 @@ function findPossibleMatch(instanceStr, knownFlat) {
     return null;
 }
 
+// Checks a single instance against every declared range. Compares
+// actual numeric values (BigInt), never lexicographic string order —
+// hex strings of the same length sort correctly either way, but this
+// stays correct even if that ever weren't true. The type suffix must
+// also match, as a second safety net on top of the range boundaries
+// themselves (a declared range is already precise, not a guess, so
+// this is defense-in-depth rather than a strict requirement).
+function checkRange(instanceStr) {
+
+    const trimmed = (instanceStr || "").trim();
+    const hexValue = extractMiddleHex(trimmed);
+    const typeSuffix = extractTypeSuffix(trimmed);
+
+    if (!hexValue || !typeSuffix) {
+        return null;
+    }
+
+    for (const range of RANGE_ENTRIES) {
+
+        const startHex = extractMiddleHex(range.startFull);
+        const endHex = extractMiddleHex(range.endFull);
+        const rangeType = extractTypeSuffix(range.startFull);
+
+        if (!startHex || !endHex || rangeType !== typeSuffix) {
+            continue;
+        }
+
+        if (BigInt(hexValue) >= BigInt(startHex) && BigInt(hexValue) <= BigInt(endHex)) {
+            return { instance: trimmed, candidates: [range.entry] };
+        }
+    }
+
+    return null;
+}
+
 function lookupCandidates(item) {
 
     for (const instance of item.instances) {
@@ -554,6 +609,19 @@ function lookupCandidates(item) {
 
         if (candidates && candidates.length) {
             return { instance: trimmed, candidates };
+        }
+    }
+
+    // No exact match anywhere — check declared ranges before giving
+    // up. Only ever populated for Object-type entries in practice
+    // (walls/floors/roofs/fences don't follow the base+increment
+    // swatch pattern), so this naturally never affects those types.
+    for (const instance of item.instances) {
+
+        const rangeMatch = checkRange(instance);
+
+        if (rangeMatch) {
+            return rangeMatch;
         }
     }
 
