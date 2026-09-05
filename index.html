@@ -357,20 +357,24 @@ Instance: 0x00000000!0x0000000000000003.0x00000000"></textarea>
             </div>
 
             <p class="modal-item-name">
-                Is your CC part of this list already? Paste your own <span translate="no">S4TI export</span>
-                for the<span translate="no">&nbsp;set</span>, add one link, and we'll register every item in it at once.
+                Is your CC part of this list already? Drop your <span translate="no">.package</span>
+                files for the<span translate="no">&nbsp;set</span>, add one link, and we'll register every item at once.
             </p>
 
             <form id="bundleForm">
 
                 <label>
-                    Your <span translate="no">S4TI export</span> for this set *
-                    <textarea id="bundleExport" required placeholder="[YourName_SetName_Item1]
-Instance: 0x00000000!0x...
-
-[YourName_SetName_Item2]
-Instance: 0x00000000!0x..."></textarea>
+                    Your <span translate="no">.package</span> files for this set *
+                    <div class="dropzone" id="bundleDropzone">
+                        <p>Drop your .package files here, or click to choose</p>
+                        <input type="file" id="bundleFileInput" accept=".package" multiple style="display: none;">
+                    </div>
+                    <div id="bundleFileList" class="dropzone-file-list"></div>
                 </label>
+
+                <p class="modal-disclaimer">
+                    Your .package files are read entirely in your browser and never uploaded anywhere, only the item names and Instance IDs are sent to be recognized by The List.
+                </p>
 
                 <label>
                     <span translate="no">Set Name</span> *
@@ -400,7 +404,7 @@ Instance: 0x00000000!0x..."></textarea>
                 <div id="bundlePrefillHint" class="prefill-hint" style="display: none;"></div>
 
                 <p class="modal-disclaimer">
-                    Every item found in your <span translate="no">export</span> will be submitted for validation
+                    Every item found in your <span translate="no">.package</span> files will be submitted for validation
                     under this same<span translate="no">&nbsp;set</span> and link.
                 </p>
 
