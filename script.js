@@ -2472,10 +2472,149 @@ const bundleModal = document.getElementById("bundleModal");
 const bundleToggle = document.getElementById("bundleToggle");
 const closeBundleButton = document.getElementById("closeBundle");
 const bundleForm = document.getElementById("bundleForm");
+const bundleDropzone = document.getElementById("bundleDropzone");
+const bundleFileInput = document.getElementById("bundleFileInput");
+const bundleFileListEl = document.getElementById("bundleFileList");
+
+let bundleDroppedFiles = [];
+let dbpfLoadPromise = null;
+
+// Loaded on demand, only once the AYACC modal is actually opened —
+// this ~200KB library has no reason to slow down every visitor who
+// never touches this modal at all.
+function loadDbpfLibrary() {
+
+    if (window.DBPF) {
+        return Promise.resolve();
+    }
+
+    if (dbpfLoadPromise) {
+        return dbpfLoadPromise;
+    }
+
+    dbpfLoadPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "dbpf.web.js";
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+    return dbpfLoadPromise;
+}
+
+// Same Build/Buy catalog resource types validated in Package Reader —
+// Object, Wall, Floor, Fence, Roof, Roof Pattern, Terrain Paint.
+const BUNDLE_CATALOG_TYPES = new Set([
+    "319e4f1d", "d5f0f921", "b4f762c9", "418fe2a", "91edbd3e", "f1edbd86", "ebcbb16c"
+]);
+
+function bundleHex(value, digits) {
+    return value.toString(16).padStart(digits, "0");
+}
+
+// Mirrors parseS4TI's output shape ({name, instances}) so the rest of
+// the AYACC submission pipeline below doesn't need to know whether
+// its input came from pasted S4TI text or dropped .package files.
+async function extractItemsFromPackageFiles(files) {
+
+    const items = [];
+
+    const originalWarn = console.warn;
+    console.warn = () => {};
+
+    try {
+
+        for (const file of files) {
+
+            const itemName = file.name.replace(/\.package$/i, "");
+            const instances = [];
+
+            try {
+
+                const dbpf = await DBPF.create(file);
+                const keys = [...dbpf._table.keys()];
+
+                for (const key of keys) {
+                    const entry = await dbpf._table.get(key);
+                    const typeHex = entry.type.toString(16);
+                    if (BUNDLE_CATALOG_TYPES.has(typeHex)) {
+                        instances.push(
+                            `0x${bundleHex(entry.group, 8)}!0x${bundleHex(entry.instance, 16)}.0x${typeHex}`
+                        );
+                    }
+                }
+
+            } catch (err) {
+                console.error(`Could not read ${file.name}:`, err);
+            }
+
+            if (instances.length > 0) {
+                items.push({ name: itemName, instances });
+            }
+        }
+
+    } finally {
+        console.warn = originalWarn;
+    }
+
+    return items;
+}
+
+function renderBundleFileList() {
+
+    if (bundleDroppedFiles.length === 0) {
+        bundleFileListEl.innerHTML = "";
+        return;
+    }
+
+    bundleFileListEl.innerHTML = bundleDroppedFiles.map((file, index) => `
+        <div class="file-entry">
+            <span>${escapeHTML(file.name)}</span>
+            <button type="button" class="text-button" data-remove-index="${index}">✕</button>
+        </div>
+    `).join("");
+}
+
+bundleDropzone.addEventListener("click", () => bundleFileInput.click());
+
+bundleDropzone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    bundleDropzone.classList.add("dragover");
+});
+
+bundleDropzone.addEventListener("dragleave", () => {
+    bundleDropzone.classList.remove("dragover");
+});
+
+bundleDropzone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    bundleDropzone.classList.remove("dragover");
+    const files = [...event.dataTransfer.files].filter((f) => f.name.toLowerCase().endsWith(".package"));
+    bundleDroppedFiles.push(...files);
+    renderBundleFileList();
+});
+
+bundleFileInput.addEventListener("change", () => {
+    const files = [...bundleFileInput.files].filter((f) => f.name.toLowerCase().endsWith(".package"));
+    bundleDroppedFiles.push(...files);
+    renderBundleFileList();
+    bundleFileInput.value = "";
+});
+
+bundleFileListEl.addEventListener("click", (event) => {
+    const index = event.target.dataset.removeIndex;
+    if (index !== undefined) {
+        bundleDroppedFiles.splice(Number(index), 1);
+        renderBundleFileList();
+    }
+});
 
 function openBundleModal() {
     closeToolboxModal();
     bundleForm.reset();
+    bundleDroppedFiles = [];
+    renderBundleFileList();
     document.getElementById("bundleProgress").classList.remove("show");
     document.getElementById("bundleProgressFill").style.width = "0%";
     bundlePartHint.style.display = "none";
@@ -2483,6 +2622,7 @@ function openBundleModal() {
     document.getElementById("bundleCreator").classList.remove("field-prefilled");
     document.getElementById("bundleLink").classList.remove("field-prefilled");
     bundleModal.classList.add("show");
+    loadDbpfLibrary().catch((err) => console.error("Could not load the .package reader:", err));
 }
 
 function closeBundleModal() {
@@ -2498,13 +2638,18 @@ bundleForm.addEventListener("submit", async (event) => {
 
     const submitBtn = bundleForm.querySelector(".modal-submit");
 
-    const exportText = document.getElementById("bundleExport").value.trim();
+    if (bundleDroppedFiles.length === 0) {
+        showToast("Drop at least one .package file first.");
+        return;
+    }
+
     const setName = document.getElementById("bundleSetName").value.trim();
     const part = document.getElementById("bundlePart").value.trim();
     const creator = document.getElementById("bundleCreator").value.trim();
     const link = document.getElementById("bundleLink").value.trim();
 
-    const items = parseS4TI(exportText);
+    await loadDbpfLibrary();
+    const items = await extractItemsFromPackageFiles(bundleDroppedFiles);
 
     // Make sure we're checking against fresh data, not whatever was
     // loaded when the page first opened.
@@ -2544,17 +2689,21 @@ bundleForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        // Package Reader now makes a full swatch list free to obtain,
-        // so AYACC sends every instance for the item, not just one
-        // representative — filling in every swatch in one go instead
-        // of leaving the rest to be caught one at a time by Possible
-        // Match later.
-        allTrimmedInstances.forEach((instance) => {
+        // Back to one representative instance per item. Package
+        // Reader's range mode now covers "capture every swatch at
+        // once" for her own downloads directly, and Possible Match
+        // catches the rest for everyone else's submissions over time —
+        // sending every instance here just meant a much heavier
+        // pending queue to approve for comparatively little gain.
+        const instance = representativeInstances([item])[0];
 
-            submissionsToSend.push({
-                itemName: formatCCName(item.name),
-                instance
-            });
+        if (!instance) {
+            return;
+        }
+
+        submissionsToSend.push({
+            itemName: formatCCName(item.name),
+            instance
         });
     });
 
@@ -2626,12 +2775,10 @@ bundleForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
-    const submittedItemCount = items.length - skippedCount;
-
     showToast(
         skippedCount > 0
-            ? `Submitted ${submissionsToSend.length} swatches across ${submittedItemCount} items (${skippedCount} already known, skipped)`
-            : `Submitted ${submissionsToSend.length} swatches across ${submittedItemCount} items for review`
+            ? `Submitted ${submissionsToSend.length} items (${skippedCount} already known, skipped)`
+            : `Submitted ${submissionsToSend.length} items for review`
     );
 
     if (generatedItems.length > 0) {
