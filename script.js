@@ -1127,7 +1127,7 @@ function generateList() {
 // entry actually HAS a creator/set — recognized, pending, missing.
 // Multiple matches and claimed items don't carry this info reliably,
 // so they're never routed through this.
-function groupByCreatorHTML(entries) {
+function groupByCreatorHTML(entries, statusPrefix) {
 
     const sorted = [...entries].sort((a, b) => {
         const creatorCmp = a.creator.localeCompare(b.creator, undefined, { sensitivity: "base" });
@@ -1155,7 +1155,7 @@ function groupByCreatorHTML(entries) {
         const setKeys = new Set(entriesForCreator.map((e) => e.setName));
 
         html += `
-            <details class="creator-group">
+            <details class="creator-group" data-open-key="creator::${statusPrefix}::${escapeHTML(creator)}">
                 <summary class="creator-group-summary">
                     <span class="creator-group-name">${escapeHTML(creator)}</span>
                     <span class="creator-group-count">${setKeys.size} set${setKeys.size === 1 ? "" : "s"}</span>
@@ -1177,7 +1177,7 @@ function wrapStatusSection(statusClass, badgeText, count, innerHTML) {
     }
 
     return `
-        <details class="status-group">
+        <details class="status-group" data-open-key="status::${statusClass}">
             <summary class="status-group-summary">
                 <span class="cc-status ${statusClass}" translate="no">${badgeText}</span>
                 <span class="status-group-count">${count}</span>
@@ -1190,6 +1190,16 @@ function wrapStatusSection(statusClass, badgeText, count, innerHTML) {
 }
 
 function renderResults(items) {
+
+    // A full re-render replaces every <details> element from scratch,
+    // which would otherwise reset all of them to closed — annoying
+    // when confirming a possible match or submitting a link closes
+    // the very section you were just looking at. Capturing what was
+    // open beforehand and reapplying it afterward keeps that state.
+    const openKeys = new Set();
+    result.querySelectorAll("details[data-open-key][open]").forEach((el) => {
+        openKeys.add(el.dataset.openKey);
+    });
 
     const list = document.createElement("div");
     list.className = "result-list";
@@ -1229,7 +1239,7 @@ function renderResults(items) {
 
                 ${tagFlagRowHTML(tagKey)}
 
-                <details class="cc-details">
+                <details class="cc-details" data-open-key="items::pending::${group.creator}::${group.setName}::${group.part || ''}">
                     <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
@@ -1239,7 +1249,7 @@ function renderResults(items) {
         return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
     });
 
-    const pendingHTML = groupByCreatorHTML(pendingEntries);
+    const pendingHTML = groupByCreatorHTML(pendingEntries, "pending");
 
     list.innerHTML += wrapStatusSection("pending", "⏳ pending", pendingGroups.length, pendingHTML);
 
@@ -1273,7 +1283,7 @@ function renderResults(items) {
 
                 ${tagFlagRowHTML(tagKey)}
 
-                <details class="cc-details">
+                <details class="cc-details" data-open-key="items::recognized::${group.creator}::${group.setName}::${group.part || ''}">
                     <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
@@ -1283,7 +1293,7 @@ function renderResults(items) {
         return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
     });
 
-    const recognizedHTML = groupByCreatorHTML(recognizedEntries);
+    const recognizedHTML = groupByCreatorHTML(recognizedEntries, "recognized");
 
     list.innerHTML += wrapStatusSection("recognized", "✓ recognized", recognizedGroups.length, recognizedHTML);
 
@@ -1324,7 +1334,7 @@ function renderResults(items) {
 
                 ${tagFlagRowHTML(tagKey)}
 
-                <details class="cc-details">
+                <details class="cc-details" data-open-key="items::missing::${group.creator}::${group.setName}::${group.part || ''}">
                     <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
@@ -1334,7 +1344,7 @@ function renderResults(items) {
         return { creator: group.creator, setName: group.setName, part: group.part, cardHTML };
     });
 
-    const missingHTML = groupByCreatorHTML(missingEntries);
+    const missingHTML = groupByCreatorHTML(missingEntries, "missing");
 
     list.innerHTML += wrapStatusSection("missing", "⚠ link missing", missingGroups.length, missingHTML);
 
@@ -1426,7 +1436,7 @@ function renderResults(items) {
 
                 ${tagRowHTML}
 
-                <details class="cc-details">
+                <details class="cc-details" data-open-key="items::multiple::${group.instance}">
                     <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
@@ -1481,7 +1491,7 @@ function renderResults(items) {
                     Yes, same set, just a different swatch
                 </button>
 
-                <details class="cc-details">
+                <details class="cc-details" data-open-key="items::possible-match::${group.creator}::${group.setName}::${group.part || ''}">
                     <summary>View ${group.items.length} item(s)</summary>
                     <ul>${itemsListHTML}</ul>
                 </details>
@@ -1590,6 +1600,12 @@ function renderResults(items) {
 
     result.innerHTML = "";
     result.appendChild(list);
+
+    result.querySelectorAll("details[data-open-key]").forEach((el) => {
+        if (openKeys.has(el.dataset.openKey)) {
+            el.open = true;
+        }
+    });
 }
 
 
