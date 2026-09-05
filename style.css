@@ -266,6 +266,45 @@ textarea {
 }
 
 
+.dropzone {
+    padding: 28px 16px;
+    margin-top: 4px;
+
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-small);
+
+    background: var(--surface-soft);
+
+    text-align: center;
+    cursor: pointer;
+
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzone.dragover {
+    border-color: var(--text);
+    background: white;
+}
+
+.dropzone p {
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.dropzone-file-list {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-soft);
+}
+
+.dropzone-file-list .file-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+
 textarea:focus {
     border-color: var(--text);
 }
