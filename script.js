@@ -2514,23 +2514,34 @@ bundleForm.addEventListener("submit", async (event) => {
 
     let sent = 0;
 
-    for (const entry of submissionsToSend) {
+    // Sent in small concurrent batches rather than one at a time (much
+    // faster on large sets) or all at once (risks Google Forms
+    // throttling a sudden burst, invisibly — no-cors gives no way to
+    // detect a failed request either way).
+    const BATCH_SIZE = 8;
 
-        const submission = {
-            itemName: entry.itemName,
-            instance: entry.instance,
-            setName: setName,
-            part: part,
-            creator: creator,
-            link: link,
-            source: "Sent through AYACC",
-            submittedAt: new Date().toISOString()
-        };
+    for (let i = 0; i < submissionsToSend.length; i += BATCH_SIZE) {
 
-        await submitToGoogleForm(submission);
-        submissions.push(submission);
+        const batch = submissionsToSend.slice(i, i + BATCH_SIZE);
 
-        sent += 1;
+        await Promise.all(batch.map(async (entry) => {
+
+            const submission = {
+                itemName: entry.itemName,
+                instance: entry.instance,
+                setName: setName,
+                part: part,
+                creator: creator,
+                link: link,
+                source: "Sent through AYACC",
+                submittedAt: new Date().toISOString()
+            };
+
+            await submitToGoogleForm(submission);
+            submissions.push(submission);
+        }));
+
+        sent += batch.length;
         const percent = Math.round((sent / submissionsToSend.length) * 100);
 
         progressFill.style.width = `${percent}%`;
