@@ -2053,6 +2053,7 @@ const GOOGLE_FORM_ACTION_URL =
 const GOOGLE_FORM_ENTRIES = {
     itemName: "entry.189940358",
     instance: "entry.2096533801",
+    instanceEnd: "PLACEHOLDER_ENTRY_INSTANCE_END",
     setName: "entry.261787736",
     part: "entry.1436122946",
     creator: "entry.762747753",
@@ -2314,6 +2315,7 @@ async function submitToGoogleForm(entryValues) {
 
     body.append(GOOGLE_FORM_ENTRIES.itemName, neutralizeFormula(entryValues.itemName));
     body.append(GOOGLE_FORM_ENTRIES.instance, neutralizeFormula(entryValues.instance));
+    body.append(GOOGLE_FORM_ENTRIES.instanceEnd, neutralizeFormula(entryValues.instanceEnd || ""));
     body.append(GOOGLE_FORM_ENTRIES.setName, neutralizeFormula(entryValues.setName));
     body.append(GOOGLE_FORM_ENTRIES.part, neutralizeFormula(entryValues.part));
     body.append(GOOGLE_FORM_ENTRIES.creator, neutralizeFormula(entryValues.creator));
@@ -2532,6 +2534,31 @@ function bundleHex(value, digits) {
 // Mirrors parseS4TI's output shape ({name, instances}) so the rest of
 // the AYACC submission pipeline below doesn't need to know whether
 // its input came from pasted S4TI text or dropped .package files.
+// Chain-based clustering, same tolerance and logic already validated
+// in Package Reader's range tool — each instance compared to the
+// PREVIOUS one in sorted order, not a fixed base.
+const AYACC_CLUSTER_TOLERANCE = 0x40;
+
+function clusterBundleInstances(instances) {
+
+    if (instances.length === 0) {
+        return [];
+    }
+
+    const sorted = [...instances].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    const clusters = [[sorted[0]]];
+
+    for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] - clusters[clusters.length - 1][clusters[clusters.length - 1].length - 1] <= BigInt(AYACC_CLUSTER_TOLERANCE)) {
+            clusters[clusters.length - 1].push(sorted[i]);
+        } else {
+            clusters.push([sorted[i]]);
+        }
+    }
+
+    return clusters;
+}
+
 async function extractItemsFromPackageFiles(files) {
 
     const items = [];
@@ -2544,7 +2571,7 @@ async function extractItemsFromPackageFiles(files) {
         for (const file of files) {
 
             const itemName = file.name.replace(/\.package$/i, "");
-            const instances = [];
+            const byType = {};
 
             try {
 
@@ -2554,20 +2581,46 @@ async function extractItemsFromPackageFiles(files) {
                 for (const key of keys) {
                     const entry = await dbpf._table.get(key);
                     const typeHex = entry.type.toString(16);
-                    if (BUNDLE_CATALOG_TYPES.has(typeHex)) {
-                        instances.push(
-                            `0x${bundleHex(entry.group, 8)}!0x${bundleHex(entry.instance, 16)}.0x${typeHex}`
-                        );
+                    if (!BUNDLE_CATALOG_TYPES.has(typeHex)) {
+                        continue;
                     }
+                    if (!byType[typeHex]) {
+                        byType[typeHex] = { group: entry.group, instances: [] };
+                    }
+                    byType[typeHex].instances.push(entry.instance);
                 }
 
             } catch (err) {
                 console.error(`Could not read ${file.name}:`, err);
+                continue;
             }
 
-            if (instances.length > 0) {
-                items.push({ name: itemName, instances });
-            }
+            // One item per detected CLUSTER, not per file — this is
+            // what naturally handles both cases correctly: a swatched
+            // Object's instances all sit close together and become
+            // ONE cluster (a real range), while Wall/Floor/Fence/Roof
+            // designs sit numerically far apart and each becomes its
+            // own single-instance cluster (no range, confirmed this
+            // is how those types actually work). A merged file with
+            // several genuinely different objects also naturally
+            // produces several clusters here.
+            Object.entries(byType).forEach(([typeHex, data]) => {
+
+                const clusters = clusterBundleInstances(data.instances);
+
+                clusters.forEach((cluster) => {
+
+                    const fullInstances = cluster.map((value) =>
+                        `0x${bundleHex(data.group, 8)}!0x${bundleHex(value, 16)}.0x${typeHex}`
+                    );
+
+                    items.push({
+                        name: itemName,
+                        instances: fullInstances,
+                        instanceEnd: fullInstances.length > 1 ? fullInstances[fullInstances.length - 1] : ""
+                    });
+                });
+            });
         }
 
     } finally {
@@ -2705,13 +2758,11 @@ bundleForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        // Back to one representative instance per item. Package
-        // Reader's range mode now covers "capture every swatch at
-        // once" for her own downloads directly, and Possible Match
-        // catches the rest for everyone else's submissions over time —
-        // sending every instance here just meant a much heavier
-        // pending queue to approve for comparatively little gain.
-        const instance = representativeInstances([item])[0];
+        // The item's first instance is the cluster's start — its
+        // instanceEnd (computed during extraction) is blank whenever
+        // the cluster was just one design (Wall/Floor/Fence/Roof),
+        // and filled in whenever it's a real swatch range (Object).
+        const instance = item.instances[0];
 
         if (!instance) {
             return;
@@ -2719,7 +2770,8 @@ bundleForm.addEventListener("submit", async (event) => {
 
         submissionsToSend.push({
             itemName: formatCCName(item.name),
-            instance
+            instance,
+            instanceEnd: item.instanceEnd || ""
         });
     });
 
@@ -2762,6 +2814,7 @@ bundleForm.addEventListener("submit", async (event) => {
             const submission = {
                 itemName: entry.itemName,
                 instance: entry.instance,
+                instanceEnd: entry.instanceEnd || "",
                 setName: setName,
                 part: part,
                 creator: creator,
