@@ -321,8 +321,24 @@ function wireAutoFillSuggestion(setNameInput, partInput, creatorInput, linkInput
         const suggestion = findPrefillSuggestion(setNameInput.value, partInput.value);
 
         if (!suggestion) {
+
             prefillHintBox.style.display = "none";
             prefillHintBox.innerHTML = "";
+
+            // The set/part typed so far no longer matches anything —
+            // if creator/link still hold OUR earlier guess (not
+            // something the person typed themselves), that guess is
+            // now stale and must be cleared, not left sitting there.
+            if (creatorInput.classList.contains("field-prefilled")) {
+                creatorInput.value = "";
+                creatorInput.classList.remove("field-prefilled");
+            }
+
+            if (linkInput.classList.contains("field-prefilled")) {
+                linkInput.value = "";
+                linkInput.classList.remove("field-prefilled");
+            }
+
             return;
         }
 
