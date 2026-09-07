@@ -2717,8 +2717,13 @@ bundleForm.addEventListener("submit", async (event) => {
     const creator = document.getElementById("bundleCreator").value.trim();
     const link = document.getElementById("bundleLink").value.trim();
 
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Reading .package files...";
+
     await loadDbpfLibrary();
     const items = await extractItemsFromPackageFiles(bundleDroppedFiles);
+
+    submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
     // Make sure we're checking against fresh data, not whatever was
     // loaded when the page first opened.
