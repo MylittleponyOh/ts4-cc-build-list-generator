@@ -1460,7 +1460,7 @@ function renderResults(items) {
                             value="${index}"
                             ${isChecked ? "checked" : ""}
                         >
-                        <span>${escapeHTML(candidate.setName)}, <strong>${escapeHTML(candidate.creator)}</strong></span>
+                        <span>${escapeHTML(candidate.setName)}, <strong>${escapeHTML(candidate.creator)}</strong>${candidate.itemName ? `, <span translate="no">${escapeHTML(candidate.itemName)}</span>` : ""}</span>
                         ${index === suggestedIndex ? '<span class="multi-suggested">suggested</span>' : ""}
                     </label>
                 `;
@@ -2844,10 +2844,18 @@ bundleForm.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
+    // submissionsToSend.length counts database ROWS (clusters) — a
+    // single file can produce several (e.g. a wallpaper whose colors
+    // don't follow the swatch pattern, each becoming its own row).
+    // Counting distinct file names instead gives the number a person
+    // actually recognizes: "how many things did I drop in," not an
+    // internal detail that can look alarmingly inflated.
+    const distinctFileCount = new Set(submissionsToSend.map((entry) => entry.itemName)).size;
+
     showToast(
         skippedCount > 0
-            ? `Submitted ${submissionsToSend.length} items (${skippedCount} already known, skipped)`
-            : `Submitted ${submissionsToSend.length} items for review`
+            ? `Submitted ${distinctFileCount} item${distinctFileCount === 1 ? "" : "s"} (${submissionsToSend.length} database entries, ${skippedCount} already known and skipped)`
+            : `Submitted ${distinctFileCount} item${distinctFileCount === 1 ? "" : "s"} (${submissionsToSend.length} database entries) for review`
     );
 
     if (generatedItems.length > 0) {
