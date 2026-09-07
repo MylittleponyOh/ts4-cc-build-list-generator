@@ -24,6 +24,11 @@ function extractTypeSuffix(instanceStr) {
     return match ? match[1].toLowerCase() : null;
 }
 
+// Reused across Refresh, the admin panel, and anywhere else that
+// wants fresh data without necessarily re-fetching a database that
+// can take several seconds to load as it keeps growing.
+let lastDatabaseLoadTime = 0;
+
 async function loadDatabase() {
 
     try {
@@ -70,6 +75,7 @@ async function loadDatabase() {
 
         DATABASE_INDEX = index;
         RANGE_ENTRIES = ranges;
+        lastDatabaseLoadTime = Date.now();
 
         updateKnownCreators();
 
@@ -79,6 +85,22 @@ async function loadDatabase() {
         DATABASE_INDEX = {};
         RANGE_ENTRIES = [];
     }
+}
+
+// Skips re-fetching the database if it was already loaded recently
+// enough — the database can take several seconds to load and only
+// grows over time, so re-fetching it on every click of "Refresh" or
+// every time the admin panel is opened adds up to real, avoidable
+// waiting for something that's read-only display data anyway.
+const DATABASE_STALE_THRESHOLD_MS = 3 * 60 * 1000;
+
+async function ensureFreshDatabase() {
+
+    if (Date.now() - lastDatabaseLoadTime < DATABASE_STALE_THRESHOLD_MS) {
+        return;
+    }
+
+    await loadDatabase();
 }
 
 // Known creators, pulled straight from the live database — powers the
@@ -1747,7 +1769,7 @@ refreshButton.addEventListener("click", async () => {
     refreshButton.disabled = true;
     refreshButton.textContent = "⟳ Checking...";
 
-    await Promise.all([loadDatabase(), loadClaimed()]);
+    await Promise.all([ensureFreshDatabase(), loadClaimed()]);
     renderResults(generatedItems);
 
     refreshButton.disabled = false;
@@ -2725,11 +2747,12 @@ bundleForm.addEventListener("submit", async (event) => {
 
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
-    // Make sure we're checking against fresh data, not whatever was
-    // loaded when the page first opened.
-    submitBtn.textContent = "Refreshing database...";
-    showToast("Refreshing database, this can take a moment...");
-    await Promise.all([loadDatabase(), loadClaimed()]);
+    // No database refresh before sending anymore — a duplicate
+    // landing in pending isn't risky (nothing becomes verified
+    // without manual approval anyway), and reloading the whole
+    // database here was the real source of a growing multi-second
+    // delay before every submission. Duplicates get cleaned up
+    // separately instead.
 
     const submissionsToSend = [];
     let skippedCount = 0;
@@ -3083,7 +3106,7 @@ async function openAdminPanel() {
     closeToolboxModal();
     adminList.innerHTML = `<p class="admin-empty">Checking...</p>`;
     adminPanel.classList.add("show");
-    await Promise.all([loadDatabase(), loadRejected()]);
+    await Promise.all([ensureFreshDatabase(), loadRejected()]);
     renderAdminList();
     updateNotificationBadge();
 }
