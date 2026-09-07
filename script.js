@@ -2727,6 +2727,8 @@ bundleForm.addEventListener("submit", async (event) => {
 
     // Make sure we're checking against fresh data, not whatever was
     // loaded when the page first opened.
+    submitBtn.textContent = "Refreshing database...";
+    showToast("Refreshing database, this can take a moment...");
     await Promise.all([loadDatabase(), loadClaimed()]);
 
     const submissionsToSend = [];
