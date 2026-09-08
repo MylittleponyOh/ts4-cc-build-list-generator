@@ -11,6 +11,14 @@
 const DATABASE_URL =
     "https://opensheet.elk.sh/1GOsgK3OpenLMWzv9UxEmK7yRn2Rts6KIiFKZmF6LWvQ/Feuille%201";
 
+// A tiny separate tab holding just a timestamp, updated by the
+// Apps Script tools (Approve, Clean duplicates) and by an onEdit
+// trigger for manual edits — reading this one small value is much
+// cheaper than reloading the whole database just to find out nothing
+// actually changed.
+const LAST_EDIT_URL =
+    "https://opensheet.elk.sh/1GOsgK3OpenLMWzv9UxEmK7yRn2Rts6KIiFKZmF6LWvQ/LastEdit";
+
 let DATABASE_INDEX = {};
 
 // Range-declared entries (Instance Start + Instance End), for objects
@@ -23,11 +31,6 @@ function extractTypeSuffix(instanceStr) {
     const match = (instanceStr || "").trim().match(/\.(0x[0-9a-f]+)$/i);
     return match ? match[1].toLowerCase() : null;
 }
-
-// Reused across Refresh, the admin panel, and anywhere else that
-// wants fresh data without necessarily re-fetching a database that
-// can take several seconds to load as it keeps growing.
-let lastDatabaseLoadTime = 0;
 
 async function loadDatabase() {
 
@@ -75,7 +78,6 @@ async function loadDatabase() {
 
         DATABASE_INDEX = index;
         RANGE_ENTRIES = ranges;
-        lastDatabaseLoadTime = Date.now();
 
         updateKnownCreators();
 
@@ -92,15 +94,43 @@ async function loadDatabase() {
 // grows over time, so re-fetching it on every click of "Refresh" or
 // every time the admin panel is opened adds up to real, avoidable
 // waiting for something that's read-only display data anyway.
-const DATABASE_STALE_THRESHOLD_MS = 3 * 60 * 1000;
+// Tracks the LastEdit value we saw the last time we actually checked
+// it — null means "never checked yet," which always triggers a real
+// reload the first time, safely.
+let lastSeenEditTimestamp = null;
 
+async function fetchLastEditTimestamp() {
+
+    try {
+
+        const response = await fetch(LAST_EDIT_URL);
+        const rows = await response.json();
+
+        return rows[0]?.timestamp || null;
+
+    } catch (error) {
+
+        console.error("Could not check LastEdit:", error);
+        return null;
+    }
+}
+
+// Reads the tiny LastEdit value first (cheap) — only reloads the
+// full database (expensive, and only getting more expensive as it
+// grows) if that value actually changed since the last time we
+// checked. A failed or missing LastEdit value falls back to always
+// reloading, so a problem with this mechanism can never cause stale
+// data to be trusted silently.
 async function ensureFreshDatabase() {
 
-    if (Date.now() - lastDatabaseLoadTime < DATABASE_STALE_THRESHOLD_MS) {
+    const currentEditTimestamp = await fetchLastEditTimestamp();
+
+    if (currentEditTimestamp && currentEditTimestamp === lastSeenEditTimestamp) {
         return;
     }
 
     await loadDatabase();
+    lastSeenEditTimestamp = currentEditTimestamp;
 }
 
 // Known creators, pulled straight from the live database — powers the
@@ -129,6 +159,7 @@ function updateKnownCreators() {
 }
 
 const databaseLoadPromise = loadDatabase();
+fetchLastEditTimestamp().then((timestamp) => { lastSeenEditTimestamp = timestamp; });
 databaseLoadPromise.then(() => updateNotificationBadge());
 
 // ------------------------------------------
@@ -2747,12 +2778,10 @@ bundleForm.addEventListener("submit", async (event) => {
 
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
 
-    // No database refresh before sending anymore — a duplicate
-    // landing in pending isn't risky (nothing becomes verified
-    // without manual approval anyway), and reloading the whole
-    // database here was the real source of a growing multi-second
-    // delay before every submission. Duplicates get cleaned up
-    // separately instead.
+    // Checks whether the database actually changed (via the tiny
+    // LastEdit value) before deciding whether a real reload is
+    // needed — cheap when nothing changed, which is the common case.
+    await Promise.all([ensureFreshDatabase(), loadClaimed()]);
 
     const submissionsToSend = [];
     let skippedCount = 0;
