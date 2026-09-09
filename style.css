@@ -47,6 +47,8 @@ body {
 
 .site-header {
     padding: 26px 5%;
+
+    transition: padding 0.2s;
 }
 
 
@@ -65,6 +67,8 @@ body {
     width: auto;
 
     display: block;
+
+    transition: height 0.2s;
 }
 
 
@@ -76,6 +80,34 @@ body {
     letter-spacing: -0.02em;
 
     color: var(--text);
+
+    transition: font-size 0.2s;
+}
+
+
+/* COMPACT LAYOUT — once something's pasted, the logo and the
+onboarding info cards have done their job. Shrinking/hiding them
+frees up real vertical space for the results container, which is
+what actually matters once a list exists. */
+
+body.has-export .site-header {
+    padding: 10px 5%;
+}
+
+body.has-export .logo-mark {
+    height: 36px;
+}
+
+body.has-export .logo h2 {
+    font-size: 16px;
+}
+
+body.has-export .info-section {
+    display: none;
+}
+
+body.has-export .result-container {
+    max-height: 62vh;
 }
 
 
