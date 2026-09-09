@@ -51,7 +51,7 @@ body {
 .site-header {
     padding: 26px 5%;
 
-    transition: padding 0.2s;
+    transition: padding 0.5s ease;
 }
 
 
@@ -74,6 +74,8 @@ body {
     display: block;
 
     flex-shrink: 0;
+
+    transition: height 0.5s ease;
 }
 
 
@@ -99,7 +101,7 @@ body {
     margin-left: 8px;
     opacity: 1;
 
-    transition: max-width 0.3s ease, opacity 0.2s ease, margin-left 0.3s ease;
+    transition: max-width 0.5s ease, opacity 0.4s ease, margin-left 0.5s ease;
 }
 
 .logo-word:first-child {
@@ -122,6 +124,10 @@ body.has-export .site-header {
     padding: 14px 5%;
 }
 
+body.has-export .logo-mark {
+    height: 44px;
+}
+
 body.has-export .logo {
     max-width: none;
     margin: 0;
@@ -135,8 +141,8 @@ body.has-export .logo-word {
 }
 
 body.has-export .logo-word:nth-child(1) { transition-delay: 0s; }
-body.has-export .logo-word:nth-child(2) { transition-delay: 0.15s; }
-body.has-export .logo-word:nth-child(3) { transition-delay: 0.3s; }
+body.has-export .logo-word:nth-child(2) { transition-delay: 0.3s; }
+body.has-export .logo-word:nth-child(3) { transition-delay: 0.6s; }
 
 body.has-export .info-section {
     display: none;
@@ -2275,6 +2281,8 @@ button:disabled {
 /* FOOTER */
 
 footer {
+    margin-top: 40px;
+
     padding: 20px;
 
     border-top: 1px solid var(--border);
