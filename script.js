@@ -1870,6 +1870,8 @@ function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNot
                     return `${setName} by ${creator}${suffix}`;
                 case "creators-list":
                     return `${setName}${suffix}`;
+                case "creators-list-items":
+                    return `${setName} - ${creator}${suffix}`;
                 case "markdown":
                 default:
                     return `${setName} (${creator})${suffix}`;
@@ -1883,6 +1885,8 @@ function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNot
                 return `${setName} by ${creator}: link needed${suffix}`;
             case "creators-list":
                 return `${setName} [link needed]${suffix}`;
+            case "creators-list-items":
+                return `${setName} - ${creator} [link needed]${suffix}`;
             case "markdown":
             default:
                 return `${setName} (${creator}), [link needed]${suffix}`;
@@ -1896,10 +1900,18 @@ function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNot
             return `${setName} by ${creator}: ${link}${suffix}`;
         case "creators-list":
             return `[${setName}](${link})${suffix}`;
+        case "creators-list-items":
+            return `[${setName}](${link}) - ${creator}${suffix}`;
         case "markdown":
         default:
             return `${setName} (${creator}), [download here](${link})${suffix}`;
     }
+}
+
+// Second line for the "creators-list-items" preset only — every raw
+// item name used from this set, comma-separated.
+function buildItemsLine(group) {
+    return group.items.map((it) => formatCCName(it.name)).join(", ");
 }
 
 async function copyResult() {
@@ -1932,8 +1944,12 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
+        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink);
+
         rawLines.push({
-            text: buildCreditLine(displaySetName, group.creator, safeLink),
+            text: copyFormat === "creators-list-items"
+                ? `${creditLine}\n${buildItemsLine(group)}`
+                : creditLine,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1946,8 +1962,12 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
+        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink, " (pending validation)");
+
         rawLines.push({
-            text: buildCreditLine(displaySetName, group.creator, safeLink, " (pending validation)"),
+            text: copyFormat === "creators-list-items"
+                ? `${creditLine}\n${buildItemsLine(group)}`
+                : creditLine,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1990,8 +2010,12 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
+        const creditLine = buildCreditLine(displaySetName, group.creator, "", "", true);
+
         rawLines.push({
-            text: buildCreditLine(displaySetName, group.creator, "", "", true),
+            text: copyFormat === "creators-list-items"
+                ? `${creditLine}\n${buildItemsLine(group)}`
+                : creditLine,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
