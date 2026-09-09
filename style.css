@@ -114,6 +114,10 @@ body.has-export .card {
     min-height: 0;
 }
 
+body.has-export {
+    min-height: 0;
+}
+
 
 /* MAIN */
 
