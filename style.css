@@ -62,6 +62,8 @@ body {
 
     max-width: 1200px;
     margin: auto;
+
+    transition: gap 0.5s ease, margin 0.5s ease;
 }
 
 
@@ -71,11 +73,13 @@ body {
 
     display: block;
 
-    transition: height 0.2s;
+    flex-shrink: 0;
 }
 
 
 .logo h2 {
+    display: flex;
+
     font-family: inherit;
 
     font-size: clamp(20px, 2.6vw, 30px);
@@ -83,8 +87,23 @@ body {
     letter-spacing: -0.02em;
 
     color: var(--text);
+}
 
-    transition: font-size 0.2s;
+
+.logo-word {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+
+    max-width: 200px;
+    margin-left: 8px;
+    opacity: 1;
+
+    transition: max-width 0.3s ease, opacity 0.2s ease, margin-left 0.3s ease;
+}
+
+.logo-word:first-child {
+    margin-left: 0;
 }
 
 
@@ -93,17 +112,31 @@ onboarding info cards have done their job. Shrinking/hiding them
 frees up real vertical space for the results container, which is
 what actually matters once a list exists. */
 
+/* COMPACT LAYOUT — once something's pasted, the logo slides to the
+top-left corner (kept at full size) and the title dissolves word by
+word behind it, in sequence. This frees up real vertical space above
+and below for the results container, which is what actually matters
+once a list exists. */
+
 body.has-export .site-header {
-    padding: 10px 5%;
+    padding: 14px 5%;
 }
 
-body.has-export .logo-mark {
-    height: 36px;
+body.has-export .logo {
+    max-width: none;
+    margin: 0;
+    gap: 0;
 }
 
-body.has-export .logo h2 {
-    font-size: 16px;
+body.has-export .logo-word {
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
 }
+
+body.has-export .logo-word:nth-child(1) { transition-delay: 0s; }
+body.has-export .logo-word:nth-child(2) { transition-delay: 0.15s; }
+body.has-export .logo-word:nth-child(3) { transition-delay: 0.3s; }
 
 body.has-export .info-section {
     display: none;
