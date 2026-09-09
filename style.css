@@ -110,6 +110,10 @@ body.has-export .result-container {
     max-height: 62vh;
 }
 
+body.has-export .card {
+    min-height: 0;
+}
+
 
 /* MAIN */
 
