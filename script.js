@@ -856,7 +856,15 @@ function updateCharacterCount() {
 
     characterCount.textContent = `${count.toLocaleString("en-US")} characters`;
 
-    generateButton.disabled = ccInput.value.trim().length === 0;
+    const hasContent = ccInput.value.trim().length > 0;
+
+    generateButton.disabled = !hasContent;
+
+    // Once there's something pasted, the logo and the onboarding
+    // info cards have done their job — shrinking/hiding them frees
+    // up real vertical space for the results container, which is
+    // what actually matters once a list exists.
+    document.body.classList.toggle("has-export", hasContent);
 }
 
 ccInput.addEventListener("input", updateCharacterCount);
