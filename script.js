@@ -2844,6 +2844,9 @@ bundleForm.addEventListener("submit", async (event) => {
                 : "No Instance ID found in that export."
         );
 
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
+
         return;
     }
 
