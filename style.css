@@ -1355,7 +1355,7 @@ button:disabled {
     height: 26px;
 
     padding: 0;
-    padding-bottom: 3px;
+    padding-bottom: 6px;
 
     border-radius: var(--radius-small);
 
