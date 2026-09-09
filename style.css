@@ -210,7 +210,7 @@ body.has-export .result-container {
 
     border: 1px solid var(--border);
 
-    transition: min-height 0.3s;
+    transition: min-height 0.5s ease;
     border-radius: var(--radius);
 }
 
@@ -620,7 +620,7 @@ button:disabled {
 
     padding-right: 4px;
 
-    transition: max-height 0.3s;
+    transition: max-height 0.5s ease;
 }
 
 
