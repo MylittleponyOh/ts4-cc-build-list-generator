@@ -209,6 +209,8 @@ body.has-export .result-container {
     background: var(--surface);
 
     border: 1px solid var(--border);
+
+    transition: min-height 0.3s;
     border-radius: var(--radius);
 }
 
@@ -617,6 +619,8 @@ button:disabled {
     max-height: 430px;
 
     padding-right: 4px;
+
+    transition: max-height 0.3s;
 }
 
 
