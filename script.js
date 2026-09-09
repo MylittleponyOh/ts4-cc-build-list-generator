@@ -2574,10 +2574,14 @@ function loadDbpfLibrary() {
     return dbpfLoadPromise;
 }
 
-// Same Build/Buy catalog resource types validated in Package Reader —
-// Object, Wall, Floor, Fence, Roof, Roof Pattern, Terrain Paint.
+// Build/Buy catalog resource types — confirmed via the community
+// resource type reference (thesims4moddersreference.org) and
+// cross-checked against real files: Object, Wall, Floor, Fence,
+// Roof, Roof Pattern, Terrain Paint, Railing, Stairs, Column,
+// Foundation, Spandrel.
 const BUNDLE_CATALOG_TYPES = new Set([
-    "319e4f1d", "d5f0f921", "b4f762c9", "418fe2a", "91edbd3e", "f1edbd86", "ebcbb16c"
+    "319e4f1d", "d5f0f921", "b4f762c9", "418fe2a", "91edbd3e", "f1edbd86", "ebcbb16c",
+    "1c1cf1f7", "9a20cd1c", "1d6df1cf", "2fae983e", "3f0c529a"
 ]);
 
 function bundleHex(value, digits) {
