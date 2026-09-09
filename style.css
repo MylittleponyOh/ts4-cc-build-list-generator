@@ -26,6 +26,9 @@
 
 
 body {
+    display: flex;
+    flex-direction: column;
+
     min-height: 100vh;
 
     background: var(--background);
@@ -106,16 +109,31 @@ body.has-export .info-section {
     display: none;
 }
 
-body.has-export .result-container {
-    max-height: 62vh;
+/* The real fix: main needs to flex-grow to actually claim the space
+freed up above (shrunk header) and below (hidden info cards) — only
+once main is genuinely taller does the grid, then the cards, then the
+result container (already flex: 1 internally) have real room to grow
+into. Capping result-container's height is still worth keeping as a
+safety ceiling, so a very short results list doesn't look artificially
+huge, and a very tall one still respects "never exceed a standard
+screen." */
+
+body.has-export main.container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+body.has-export .generator-grid {
+    flex: 1;
 }
 
 body.has-export .card {
     min-height: 0;
 }
 
-body.has-export {
-    min-height: 0;
+body.has-export .result-container {
+    max-height: 70vh;
 }
 
 
