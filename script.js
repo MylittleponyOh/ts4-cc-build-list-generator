@@ -2796,15 +2796,14 @@ bundleForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        // Already fully recognized (has a working link), or already
-        // claimed by someone else's submission — nothing useful to add
-        // by re-submitting it. IMPORTANT: check EVERY instance the item
-        // carries, not just the first one — a swatched item might have
-        // its instances listed in any order, and only one of them may
-        // already be registered in the database. If ANY instance is
-        // already covered, treat the whole item as known (this is what
-        // makes "same item, different color" not get half-skipped).
-        const alreadyCovered = allTrimmedInstances.some((instance) => {
+        // Skip only if the WHOLE cluster is already covered — not
+        // just one instance of it. With ranges, a cluster can now
+        // hold many swatches at once; if only some are already
+        // known, the rest are still genuinely new and worth
+        // submitting to fill the gap. (Any overlap this creates with
+        // what's already verified isn't risky — it's exactly the
+        // kind of redundancy the duplicate-cleaning tool handles.)
+        const alreadyCovered = allTrimmedInstances.every((instance) => {
 
             const existing = DATABASE_INDEX[instance];
             const hasLink = existing && existing.some((c) => c.link && c.link.trim());
