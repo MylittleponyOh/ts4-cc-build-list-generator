@@ -3317,7 +3317,7 @@ function showToast(message) {
 
     setTimeout(() => {
         toast.classList.remove("show");
-    }, 2500);
+    }, 4500);
 }
 
 
