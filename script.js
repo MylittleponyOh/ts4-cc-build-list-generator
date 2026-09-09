@@ -2743,6 +2743,9 @@ function openBundleModal() {
     document.getElementById("bundlePrefillHint").style.display = "none";
     document.getElementById("bundleCreator").classList.remove("field-prefilled");
     document.getElementById("bundleLink").classList.remove("field-prefilled");
+    const submitBtn = bundleForm.querySelector(".modal-submit");
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
     bundleModal.classList.add("show");
     loadDbpfLibrary().catch((err) => console.error("Could not load the .package reader:", err));
 }
