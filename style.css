@@ -1355,7 +1355,6 @@ button:disabled {
     height: 26px;
 
     padding: 0;
-    padding-bottom: 6px;
 
     border-radius: var(--radius-small);
 
@@ -1365,6 +1364,10 @@ button:disabled {
     font-size: 18px;
     font-weight: 700;
     line-height: 1;
+}
+
+.icon-button-small span {
+    transform: translateY(-2px);
 }
 
 
