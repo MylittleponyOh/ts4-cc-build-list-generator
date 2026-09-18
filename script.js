@@ -2254,6 +2254,7 @@ function openSubmitModal(itemName, instancesCsv, setNameGuess, creatorGuess, nam
     }
 
     submitModal.classList.add("show");
+    ensureFreshDatabase().catch((err) => console.error("Could not refresh the database:", err));
 }
 
 function closeSubmitModal() {
@@ -2831,6 +2832,7 @@ function openBundleModal() {
     submitBtn.innerHTML = 'Submit the whole<span translate="no">&nbsp;set</span>';
     bundleModal.classList.add("show");
     loadDbpfLibrary().catch((err) => console.error("Could not load the .package reader:", err));
+    ensureFreshDatabase().catch((err) => console.error("Could not refresh the database:", err));
 }
 
 function closeBundleModal() {
