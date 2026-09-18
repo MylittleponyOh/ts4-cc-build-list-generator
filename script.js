@@ -2696,11 +2696,12 @@ async function extractItemsFromPackageFiles(files) {
             Object.entries(byType).forEach(([typeHex, data]) => {
 
                 const clusters = clusterBundleInstances(data.instances);
+                const paddedType = typeHex.padStart(8, "0");
 
                 clusters.forEach((cluster) => {
 
                     const fullInstances = cluster.map((value) =>
-                        `0x${bundleHex(data.group, 8)}!0x${bundleHex(value, 16)}.0x${typeHex}`
+                        `0x${bundleHex(data.group, 8)}!0x${bundleHex(value, 16)}.0x${paddedType}`
                     );
 
                     items.push({
