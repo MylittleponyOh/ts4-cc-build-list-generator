@@ -3018,8 +3018,20 @@ bundleForm.addEventListener("submit", async (event) => {
 // Shared by renderAdminList and the floating notification badge, so
 // the definition of "approved" only lives in one place.
 function isSubmissionApproved(sub) {
-    const candidates = DATABASE_INDEX[(sub.instance || "").trim()];
-    return candidates && candidates.some((c) => c.link && c.link.trim());
+
+    const instance = (sub.instance || "").trim();
+    const candidates = DATABASE_INDEX[instance];
+
+    if (candidates && candidates.some((c) => c.link && c.link.trim())) {
+        return true;
+    }
+
+    // Not an exact match — but it may now be covered by a range
+    // declared after this person's own submission (e.g. a moderator
+    // later added the whole set via AYACC). Without this check, a
+    // Possible Match confirmation could stay stuck on "still pending"
+    // forever even once genuinely covered.
+    return checkRange(instance) !== null;
 }
 
 // Shared by splitSubmissionsByStatus and the "dismiss all rejected"
