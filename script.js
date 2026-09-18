@@ -1865,7 +1865,7 @@ copyFormatRadios.forEach((radio) => {
 // having a link yet is the expected, normal state — no need to flag it
 // in the copied list. Left false (default) for recognized/pending, so a
 // genuinely malformed link there still shows as a real data problem.
-function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNote = false) {
+function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNote = false, hideCreatorInLine = false) {
 
     if (!link) {
 
@@ -1873,46 +1873,46 @@ function buildCreditLine(setName, creator, link, suffix = "", hideMissingLinkNot
 
             switch (copyFormat) {
                 case "name-link":
-                    return `${creator} **${setName}**${suffix}`;
+                    return hideCreatorInLine ? `**${setName}**${suffix}` : `${creator} **${setName}**${suffix}`;
                 case "plain":
-                    return `${setName} by ${creator}${suffix}`;
+                    return hideCreatorInLine ? `${setName}${suffix}` : `${setName} by ${creator}${suffix}`;
                 case "creators-list":
                     return `${setName}${suffix}`;
                 case "creators-list-items":
-                    return `${setName} - ${creator}${suffix}`;
+                    return hideCreatorInLine ? `${setName}${suffix}` : `${setName} - ${creator}${suffix}`;
                 case "markdown":
                 default:
-                    return `${setName} (${creator})${suffix}`;
+                    return hideCreatorInLine ? `${setName}${suffix}` : `${setName} (${creator})${suffix}`;
             }
         }
 
         switch (copyFormat) {
             case "name-link":
-                return `${creator} **${setName}** (link needed)${suffix}`;
+                return hideCreatorInLine ? `**${setName}** (link needed)${suffix}` : `${creator} **${setName}** (link needed)${suffix}`;
             case "plain":
-                return `${setName} by ${creator}: link needed${suffix}`;
+                return hideCreatorInLine ? `${setName}: link needed${suffix}` : `${setName} by ${creator}: link needed${suffix}`;
             case "creators-list":
                 return `${setName} [link needed]${suffix}`;
             case "creators-list-items":
-                return `${setName} - ${creator} [link needed]${suffix}`;
+                return hideCreatorInLine ? `${setName} [link needed]${suffix}` : `${setName} - ${creator} [link needed]${suffix}`;
             case "markdown":
             default:
-                return `${setName} (${creator}), [link needed]${suffix}`;
+                return hideCreatorInLine ? `${setName} [link needed]${suffix}` : `${setName} (${creator}), [link needed]${suffix}`;
         }
     }
 
     switch (copyFormat) {
         case "name-link":
-            return `${creator} **[${setName}](${link})**${suffix}`;
+            return hideCreatorInLine ? `**[${setName}](${link})**${suffix}` : `${creator} **[${setName}](${link})**${suffix}`;
         case "plain":
-            return `${setName} by ${creator}: ${link}${suffix}`;
+            return hideCreatorInLine ? `${setName}: ${link}${suffix}` : `${setName} by ${creator}: ${link}${suffix}`;
         case "creators-list":
             return `[${setName}](${link})${suffix}`;
         case "creators-list-items":
-            return `[${setName}](${link}) - ${creator}${suffix}`;
+            return hideCreatorInLine ? `[${setName}](${link})${suffix}` : `[${setName}](${link}) - ${creator}${suffix}`;
         case "markdown":
         default:
-            return `${setName} (${creator}), [download here](${link})${suffix}`;
+            return hideCreatorInLine ? `${setName} [download here](${link})${suffix}` : `${setName} (${creator}), [download here](${link})${suffix}`;
     }
 }
 
@@ -1933,6 +1933,12 @@ async function copyResult() {
 
     const rawLines = [];
 
+    // "creators-list" keeps its own separate flat-list + end recap
+    // logic, it's the one preset this doesn't apply to.
+    const creatorGroupingActive =
+        ["markdown", "name-link", "plain", "creators-list-items"].includes(copyFormat) && !tagFlagEnabled;
+    const creatorGroupedEntries = [];
+
     // Only populated (and only shown) when the "creators-list" format
     // is selected — a plain, casse-safe recap of every known creator
     // used in the build, separate from any per-platform tagging.
@@ -1952,12 +1958,18 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
-        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink);
+        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink, "", false, creatorGroupingActive);
+        const finalText = copyFormat === "creators-list-items"
+            ? `${creditLine}\n${buildItemsLine(group)}`
+            : creditLine;
+
+        if (creatorGroupingActive) {
+            creatorGroupedEntries.push({ creator: group.creator, line: finalText });
+            return;
+        }
 
         rawLines.push({
-            text: copyFormat === "creators-list-items"
-                ? `${creditLine}\n${buildItemsLine(group)}`
-                : creditLine,
+            text: finalText,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -1970,12 +1982,18 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
-        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink, " (pending validation)");
+        const creditLine = buildCreditLine(displaySetName, group.creator, safeLink, " (pending validation)", false, creatorGroupingActive);
+        const finalText = copyFormat === "creators-list-items"
+            ? `${creditLine}\n${buildItemsLine(group)}`
+            : creditLine;
+
+        if (creatorGroupingActive) {
+            creatorGroupedEntries.push({ creator: group.creator, line: finalText });
+            return;
+        }
 
         rawLines.push({
-            text: copyFormat === "creators-list-items"
-                ? `${creditLine}\n${buildItemsLine(group)}`
-                : creditLine,
+            text: finalText,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -2018,12 +2036,18 @@ async function copyResult() {
 
         trackCreator(group.creator);
 
-        const creditLine = buildCreditLine(displaySetName, group.creator, "", "", true);
+        const creditLine = buildCreditLine(displaySetName, group.creator, "", "", true, creatorGroupingActive);
+        const finalText = copyFormat === "creators-list-items"
+            ? `${creditLine}\n${buildItemsLine(group)}`
+            : creditLine;
+
+        if (creatorGroupingActive) {
+            creatorGroupedEntries.push({ creator: group.creator, line: finalText });
+            return;
+        }
 
         rawLines.push({
-            text: copyFormat === "creators-list-items"
-                ? `${creditLine}\n${buildItemsLine(group)}`
-                : creditLine,
+            text: finalText,
             category: tagFlagEnabled ? itemTags[key] : undefined
         });
     });
@@ -2076,6 +2100,28 @@ async function copyResult() {
     } else {
 
         text = rawLines.map((l) => l.text).join("\n");
+    }
+
+    if (creatorGroupingActive && creatorGroupedEntries.length > 0) {
+
+        const byCreator = new Map();
+
+        creatorGroupedEntries.forEach(({ creator, line }) => {
+            if (!byCreator.has(creator)) {
+                byCreator.set(creator, []);
+            }
+            byCreator.get(creator).push(line);
+        });
+
+        const sortedCreators = Array.from(byCreator.keys()).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: "base" })
+        );
+
+        const groupedBlock = sortedCreators
+            .map((creator) => `${creator}\n${byCreator.get(creator).join("\n")}`)
+            .join("\n\n");
+
+        text = text ? `${groupedBlock}\n\n${text}` : groupedBlock;
     }
 
     if (copyFormat === "creators-list" && creatorsUsed.size > 0) {
